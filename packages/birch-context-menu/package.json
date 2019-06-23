@@ -1,6 +1,6 @@
 {
   "name": "birch-context-menu",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Custom context menu for react",
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
   "main": "dist/",
   "typings": "dist/",
   "dependencies": {
-    "birch-event-emitter": "^1.0.3",
+    "birch-event-emitter": "^1.0.4",
     "styled-components": "^4.3.2"
   },
   "peerDependencies": {
