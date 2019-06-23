@@ -1,0 +1,39 @@
+{
+  "name": "birch-mono-repository",
+  "description": "Stylish solution for rendering nested trees in React apps",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
+  },
+  "author": {
+    "name": "Tinia Labs"
+  },
+  "devDependencies": {
+    "@types/react": "^16.8.22",
+    "@types/react-dom": "^16.8.4",
+    "@types/styled-components": "4.1.8",
+    "@types/styled-system": "4.1.3",
+    "lerna": "^3.15.0",
+    "rimraf": "^2.6.3",
+    "tslint": "^5.18.0",
+    "typescript": "3.5.2",
+    "ts-node": "^8.3.0",
+    "@berun/dev-scripts": "^2.0.25"
+   },
+   "scripts": {
+    "build": "lerna run build",
+    "clean": "rimraf **/build && rimraf **/dist && rimraf **/node_modules && rm -rf yarn.lock && rm -rf .fusebox",
+    "lint": "lerna run lint",
+    "postinstall": "yarn build"
+  },
+  "dependencies": {
+  },
+  "resolutions": {
+    "typescript": "3.5.2",
+    "@types/styled-components": "4.1.8"
+  },
+  "workspaces": [
+		"packages/*"
+	]
+}

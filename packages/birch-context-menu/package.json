@@ -1,0 +1,39 @@
+{
+  "name": "birch-context-menu",
+  "version": "1.0.3",
+  "description": "Custom context menu for react",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "berun-dev lint"
+  },
+  "main": "dist/",
+  "typings": "dist/",
+  "dependencies": {
+    "birch-event-emitter": "^1.0.3",
+    "styled-components": "^4.3.2"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0"
+  },
+  "keywords": [
+    "right",
+    "click",
+    "custom",
+    "context",
+    "menu",
+    "react",
+    "react-birch",
+    "tinia"
+  ],
+  "author": "Tinia Labs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tinialabs/react-birch#issues"
+  },
+  "homepage": "https://github.com/tinialabs/react-birch#readme"
+}
