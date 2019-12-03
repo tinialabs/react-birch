@@ -160,7 +160,7 @@ export const ContextMenuProvider = ({ children }) => {
         pos: pos.current,
         visible,
         data
-    }} >{children}>
+    }} >{children}
         </MenuReactContext.Provider>
 }
 
