@@ -1,6 +1,6 @@
 {
   "name": "react-birch",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Stylish solution for rendering nested trees in React apps",
   "scripts": {
     "build": "tsc",
@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@githubprimer/octicons-react": "^8.5.0",
-    "birch-context-menu": "^1.0.4",
-    "birch-event-emitter": "^1.0.4",
+    "birch-context-menu": "^1.0.5",
+    "birch-event-emitter": "^1.0.5",
     "classnames": "^2.2.6",
     "mobx": "^4.15.0",
     "p-series": "^1.0.0",
