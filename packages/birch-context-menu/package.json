@@ -1,6 +1,6 @@
 {
   "name": "birch-context-menu",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Custom context menu for react",
   "main": "dist/index.js",
   "author": "Tinia Labs",
@@ -29,12 +29,11 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "birch-event-emitter": "^1.1.0",
+    "birch-event-emitter": "^1.1.1",
     "styled-components": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "^16.9.22",
     "@types/react-dom": "^16.9.5"
-  },
-  "peerDependencies": {}
+  }
 }

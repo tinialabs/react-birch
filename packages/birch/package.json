@@ -1,6 +1,6 @@
 {
   "name": "react-birch",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Stylish solution for rendering nested trees in React apps",
   "main": "dist/index.js",
   "author": "Tinia Labs",
@@ -30,8 +30,8 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "birch-context-menu": "^1.1.0",
-    "birch-event-emitter": "^1.1.0",
+    "birch-context-menu": "^1.1.1",
+    "birch-event-emitter": "^1.1.1",
     "classnames": "^2.2.6",
     "mobx": "^4.15.4",
     "p-series": "^1.1.0",
@@ -42,6 +42,5 @@
   },
   "devDependencies": {
     "@types/react": "^16.9.22"
-  },
-  "peerDependencies": {}
+  }
 }
