@@ -97,12 +97,6 @@ export const useActiveSelection = (
         pseudoActiveItem.current = fileH
         forceUpdate()
       }
-      if (fileH) {
-        await treeViewHandleExtended.current.ensureVisible(fileH)
-        if (fileH.type === EnumTreeItemType.Folder) {
-          await model.root.expandFolder(fileH as BirchFolder, true)
-        }
-      }
     },
     []
   )
