@@ -1,0 +1,43 @@
+{
+    "search.useIgnoreFiles": false,
+    "search.exclude": {
+        "**/.fusebox": true,
+        "**/build": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/whendo-blockly": true,
+        "**/bower_components": true,
+        "**/public": true
+    },
+    "javascript.implicitProjectConfig.experimentalDecorators": false,
+    "workbench.colorTheme": "Default Light+",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSaveTimeout": 6000,
+    "eslint.options": {
+      "configFile": "./.eslintrc.js"
+    },
+    "eslint.lintTask.options": "-c ${workspaceRoot}/.eslintrc.js --ignore-path ${workspaceRoot}/.eslintignore --ext .ts,.js .",
+    "eslint.lintTask.enable": true, 
+    "[javascript]": {
+      "editor.formatOnSave": false
+    },
+    "[javascriptreact]": {
+      "editor.formatOnSave": false
+    },
+    "[typescript]": {
+      "editor.formatOnSave": false
+    },
+    "[typescriptreact]": {
+      "editor.formatOnSave": false
+    },
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact"
+    ],
+    "eslint.alwaysShowStatus": true
+  }

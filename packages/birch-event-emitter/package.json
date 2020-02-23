@@ -1,17 +1,13 @@
 {
   "name": "birch-event-emitter",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Simple Event Emitter",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tinialabs/react-birch.git"
+  "main": "dist/index.js",
+  "author": "Tinia Labs",
+  "bugs": {
+    "url": "https://github.com/tinialabs/react-birch#issues"
   },
-  "scripts": {
-    "build": "tsc",
-    "lint": "berun-dev lint"
-  },
-  "main": "dist/",
-  "typings": "dist/",
+  "homepage": "https://github.com/tinialabs/react-birch#readme",
   "keywords": [
     "right",
     "click",
@@ -22,10 +18,17 @@
     "react-birch",
     "tinia"
   ],
-  "author": "Tinia Labs",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tinialabs/react-birch#issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
   },
-  "homepage": "https://github.com/tinialabs/react-birch#readme"
+  "scripts": {
+    "build": "tsc",
+    "lint": "berun-dev lint"
+  },
+  "typings": "dist/index.d.ts",
+  "dependencies": {},
+  "devDependencies": {},
+  "peerDependencies": {}
 }

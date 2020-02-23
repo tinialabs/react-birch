@@ -1,23 +1,25 @@
-import { BirchFolder, BirchItem } from '../../models'
+import { BirchFolder, BirchItem } from '..'
 import { PromptHandle } from './PromptHandle'
 
 export class PromptHandleRename extends PromptHandle {
+  constructor(
+    public readonly originalLabel: string,
+    public readonly target: BirchItem | BirchFolder
+  ) {
+    super()
+    this.$.value = originalLabel
+    this.setSelectionRange(0, originalLabel.lastIndexOf('.'))
+  }
 
-	constructor(public readonly originalLabel: string, public readonly target: BirchItem | BirchFolder) {
-		super()
-		this.$.value = originalLabel
-		this.setSelectionRange(0, originalLabel.lastIndexOf('.'))
-	}
+  get birchId(): number {
+    return this.target.birchId
+  }
 
-	get birchId(): number {
-		return this.target.birchId
-	}
+  get depth() {
+    return this.target.depth
+  }
 
-	get depth() {
-		return this.target.depth
-	}
-
-	get iconPath() {
-		return this.target.iconPath
-	}
+  get iconPath() {
+    return this.target.iconPath
+  }
 }

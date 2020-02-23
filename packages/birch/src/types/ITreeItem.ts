@@ -104,6 +104,7 @@ export declare interface ITreeItem {
      */
     contextValue?: string;
 
+    disposed?: boolean;
 
 }
 

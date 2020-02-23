@@ -1,227 +1,271 @@
-import { useEffect, useRef } from "react";
-import { BirchFolder, BirchItem, BirchRoot, EnumBirchWatchEvent } from "../models";
-import { EnumTreeItemType, EnumTreeViewExtendedEvent, ITreeViewExtendedHandle, IBirchContext, ITreeItem } from "../types";
+import { useEffect, useRef } from 'react'
 import { Align } from 'react-window'
-import { DisposablesComposite, EventEmitter } from 'birch-event-emitter';
+import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
+import {
+  BirchFolder,
+  BirchItem,
+  BirchRoot,
+  EnumBirchWatchEvent
+} from '../models'
+import {
+  EnumTreeItemType,
+  EnumTreeViewExtendedEvent,
+  ITreeViewExtendedHandle,
+  IBirchContext,
+  ITreeItem
+} from '../types'
 
-export const useHandleApi = (birchContextRef: React.MutableRefObject<IBirchContext>) => {
+export const useHandleApi = (
+  birchContextRef: React.MutableRefObject<IBirchContext>
+) => {
+  const disposables = useRef<DisposablesComposite>()
+  const events = useRef<EventEmitter<EnumTreeViewExtendedEvent>>()
+  const viewId = birchContextRef.current.viewId
 
-	const disposables = useRef<DisposablesComposite>()
-	const events = useRef<EventEmitter<EnumTreeViewExtendedEvent>>()
-	const viewId = birchContextRef.current.viewId
+  useEffect(() => {
+    disposables.current = new DisposablesComposite()
+    events.current = new EventEmitter()
 
-    useEffect(() => {
+    return () => {
+      disposables.current.dispose()
+      events.current.clear()
+    }
+  }, [viewId])
 
-		disposables.current = new DisposablesComposite()
-		events.current = new EventEmitter()
+  useEffect(() => {
+    const {
+      options: {
+        onReady,
+        treeDataProvider: { id }
+      },
+      listRef,
+      treeViewHandleExtended,
+      model,
+      wrapperRef,
+      activeSelection: {
+        activeItem,
+        pseudoActiveItem,
+        updateActiveItem,
+        updatePseudoActiveItem
+      },
+      prompts: { supervisePrompt, promptRename, promptNewFolder, promptNewItem }
+    } = birchContextRef.current
 
-		return () => {
-			disposables.current.dispose()
-			events.current.clear()
-		}
+    const getItemHandle = async (path: string, expandTree = true) => {
+      const fileH = await model.root.forceLoadItemEntryAtPath(path)
+      if (fileH && expandTree && !model.root.isItemVisibleAtSurface(fileH)) {
+        await model.root.expandFolder(fileH.parent, true)
+      }
+      return fileH
+    }
 
-	}, [viewId])
+    const openFolder = async (pathOrFolder: string | BirchFolder) => {
+      const folder: BirchFolder =
+        typeof pathOrFolder === 'string'
+          ? ((await model.root.forceLoadItemEntryAtPath(
+              pathOrFolder
+            )) as BirchFolder)
+          : pathOrFolder
 
-	useEffect(() => {
+      if (folder && folder.constructor === BirchFolder) {
+        return model.root.expandFolder(folder)
+      }
+      return null
+    }
 
-		const {
-			options: { 
-			   onReady,
-			   treeDataProvider: { id }
-			 },
-		   listRef,
-		   treeViewHandleExtended,
-		   model,
-		   wrapperRef,
-		   activeSelection: { activeItem,
-			   pseudoActiveItem,
-			   updateActiveItem,
-			   updatePseudoActiveItem, },
-		   prompts: { supervisePrompt,
-			   promptRename,
-			   promptNewFolder,
-			   promptNewItem },
-	   } = birchContextRef.current
+    const closeFolder = async (pathOrFolder: string | BirchFolder) => {
+      const folder: BirchFolder =
+        typeof pathOrFolder === 'string'
+          ? ((await model.root.forceLoadItemEntryAtPath(
+              pathOrFolder
+            )) as BirchFolder)
+          : pathOrFolder
 
-		const getItemHandle = async (path: string, expandTree = true) => {
-			const fileH = await model.root.forceLoadItemEntryAtPath(path)
-			if (fileH && expandTree && !model.root.isItemVisibleAtSurface(fileH)) {
-				await model.root.expandFolder(fileH.parent, true)
-			}
-			return fileH
-		}
+      if (folder && folder.constructor === BirchFolder) {
+        return model.root.collapseFolder(folder)
+      }
+      return null
+    }
 
-		const openFolder = async (pathOrFolder: string | BirchFolder) => {
-			const folder: BirchFolder = typeof pathOrFolder === 'string'
-				? await model.root.forceLoadItemEntryAtPath(pathOrFolder) as BirchFolder
-				: pathOrFolder
+    const toggleFolder = async (pathOrDir: string | BirchFolder) => {
+      const dir =
+        typeof pathOrDir === 'string'
+          ? await getItemHandle(pathOrDir)
+          : pathOrDir
+      if (dir.type === EnumTreeItemType.Folder) {
+        if ((dir as BirchFolder).expanded) {
+          closeFolder(dir as BirchFolder)
+        } else {
+          openFolder(dir as BirchFolder)
+        }
+      }
+    }
 
+    const collapseAll = async () => {
+      await model.root.flushEventQueue()
 
-			if (folder && folder.constructor === BirchFolder) {
-				return model.root.expandFolder(folder)
-			}
-		}
+      const toFlatten: BirchFolder[] = []
 
-		const closeFolder = async (pathOrFolder: string | BirchFolder) => {
-			const folder: BirchFolder = typeof pathOrFolder === 'string'
-				? await model.root.forceLoadItemEntryAtPath(pathOrFolder) as BirchFolder
-				: pathOrFolder
+      for (let _i = 0; _i < model.root.branchSize; _i++) {
+        const entry = model.root.getItemEntryAtIndex(_i)!
+        if (
+          entry.type === EnumTreeItemType.Folder &&
+          (entry as BirchFolder).expanded
+        ) {
+          toFlatten.push(entry as BirchFolder)
+        }
+      }
 
-			if (folder && folder.constructor === BirchFolder) {
-				return model.root.collapseFolder(folder)
-			}
-		}
+      toFlatten.forEach(entry => entry.setCollapsed())
 
-		const toggleFolder = async (pathOrDir: string | BirchFolder) => {
-			const dir = typeof pathOrDir === 'string'
-				? await getItemHandle(pathOrDir)
-				: pathOrDir
-			if (dir.type === EnumTreeItemType.Folder) {
-				if ((dir as BirchFolder).expanded) {
-					closeFolder(dir as BirchFolder)
-				} else {
-					openFolder(dir as BirchFolder)
-				}
-			}
-		}
+      updateActiveItem(null!)
+      updatePseudoActiveItem(null!)
+      events.current.emit(EnumTreeViewExtendedEvent.OnDidChangeSelection, null)
+    }
 
-		const collapseAll = async () => {
+    const scrollIntoView = (
+      itemOrFolder: BirchItem | BirchFolder,
+      align: Align = 'center'
+    ) => {
+      const idx = model.root.getIndexAtItemEntry(itemOrFolder)
+      if (idx > -1) {
+        if (listRef.current) {
+          listRef.current.scrollToItem(idx, align)
+        }
+        return true
+      }
+      return false
+    }
 
-			await model.root.flushEventQueue()
+    const ensureVisible = async (
+      pathOrItemEntry: string | BirchItem | BirchFolder,
+      align: Align = 'auto'
+    ) => {
+      await model.root.flushEventQueue()
 
-			const toFlatten: BirchFolder[] = []
+      const itemEntry =
+        typeof pathOrItemEntry === 'string'
+          ? await model.root.forceLoadItemEntryAtPath(pathOrItemEntry)
+          : pathOrItemEntry
 
-			for (var _i = 0; _i < model.root.branchSize; _i++) {
-				let entry = model.root.getItemEntryAtIndex(_i)!
-				if (entry.type == EnumTreeItemType.Folder && (entry as BirchFolder).expanded) {
-					toFlatten.push(entry as BirchFolder)
-				}
-			}
+      if (
+        !(itemEntry instanceof BirchItem) ||
+        itemEntry.constructor === BirchRoot
+      ) {
+        throw new TypeError(`Object not a valid BirchItem`)
+      }
+      if (scrollIntoView(itemEntry, align)) {
+        return
+      }
+      await model.root.expandFolder(itemEntry.parent, true)
+      if (listRef.current) {
+        listRef.current.scrollToItem(
+          model.root.getIndexAtItemEntry(itemEntry),
+          align
+        )
+      }
+    }
 
-			toFlatten.forEach((entry) => entry.setCollapsed())
+    const unlinkItem = async (
+      fileOrDirOrPath: BirchItem | BirchFolder | string
+    ) => {
+      const filedir =
+        typeof fileOrDirOrPath === 'string'
+          ? await treeViewHandleExtended.current.getItemHandle(fileOrDirOrPath)
+          : fileOrDirOrPath
 
-			updateActiveItem(null!)
-			updatePseudoActiveItem(null!)
-			events.current.emit(EnumTreeViewExtendedEvent.OnDidChangeSelection, null)
+      model.root.dispatch({
+        type: EnumBirchWatchEvent.Removed,
+        tid: filedir.tid,
+        path: filedir.path
+      })
+    }
 
-		}
+    const createdItem = async (item: ITreeItem, parentDir: BirchFolder) => {
+      console.log('createdItem', item.tid, parentDir.tid)
 
-		const scrollIntoView = (itemOrFolder: BirchItem | BirchFolder, align: Align = 'center') => {
-			const idx = model.root.getIndexAtItemEntry(itemOrFolder)
-			if (idx > -1) {
-				if (listRef.current) {
-					listRef.current.scrollToItem(idx, align)
-				}
-				return true
-			}
-			return false
-		}
+      const newName = item.label
 
-		const ensureVisible = async (pathOrItemEntry: string | BirchItem | BirchFolder, align: Align = 'auto') => {
-			await model.root.flushEventQueue()
+      const newPath = model.root.pathfx.join(parentDir.path, newName)
 
-			const itemEntry = typeof pathOrItemEntry === 'string'
-				? await model.root.forceLoadItemEntryAtPath(pathOrItemEntry)
-				: pathOrItemEntry
+      if (item.type && item.label) {
+        model.root.dispatch({
+          type: EnumBirchWatchEvent.Added,
+          folder: parentDir.path,
+          item
+        })
+        treeViewHandleExtended.current.setActiveItem(newPath)
+        treeViewHandleExtended.current.setPseudoActiveItem(null!)
+        setTimeout(() => {
+          const item = treeViewHandleExtended.current.getActiveItem()
+          if (item.details.command) {
+            item.details.command.handler!(item)
+            treeViewHandleExtended.current.events.emit(
+              EnumTreeViewExtendedEvent.OnDidChangeSelection,
+              item as BirchItem
+            )
+          }
+        }, 0)
+      }
+    }
 
-			if (!(itemEntry instanceof BirchItem) || itemEntry.constructor === BirchRoot) {
-				throw new TypeError(`Object not a valid BirchItem`)
-			}
-			if (scrollIntoView(itemEntry, align)) {
-				return
-			}
-			await model.root.expandFolder(itemEntry.parent, true)
-			if (listRef.current) {
-				listRef.current.scrollToItem(model.root.getIndexAtItemEntry(itemEntry), align)
-			}
-		}
+    const handle: ITreeViewExtendedHandle = {
+      id,
 
-		const unlinkItem = async (fileOrDirOrPath: BirchItem | BirchFolder | string) => {
-			const filedir = typeof fileOrDirOrPath === 'string'
-				? await treeViewHandleExtended.current.getItemHandle(fileOrDirOrPath)
-				: fileOrDirOrPath
+      getModel: () => model,
 
-			model.root.dispatch({
-				type: EnumBirchWatchEvent.Removed,
-				tid: filedir.tid,
-				path: filedir.path,
-			})
-		}
+      getActiveItem: () => birchContextRef.current.activeSelection.activeItem,
+      setActiveItem: updateActiveItem,
+      getPseudoActiveItem: () =>
+        birchContextRef.current.activeSelection.pseudoActiveItem,
+      setPseudoActiveItem: updatePseudoActiveItem,
 
-		const createdItem = async (item: ITreeItem, parentDir: BirchFolder) => {
+      openFolder,
+      closeFolder,
+      toggleFolder,
+      collapseAll,
+      getItemHandle,
+      ensureVisible,
 
-			console.log("createdItem", item.tid, parentDir.tid)
+      unlinkItem: async (fileOrDirOrPath: BirchItem | BirchFolder | string) =>
+        unlinkItem(fileOrDirOrPath),
+      rename: async (fileOrDirOrPath: BirchItem | BirchFolder | string) =>
+        supervisePrompt(await promptRename(fileOrDirOrPath as any)),
+      newItem: async (dirOrPath: BirchFolder | string, iconPath?: string) => {
+        const result = await promptNewItem(dirOrPath as any, iconPath)
+        supervisePrompt(result)
+      },
+      newFolder: async (dirOrPath: BirchFolder | string) => {
+        const result = await promptNewFolder(dirOrPath as any)
+        supervisePrompt(result)
+      },
+      createdItem: async (item: ITreeItem, parentDir: BirchFolder) =>
+        createdItem(item, parentDir),
+      onBlur: callback =>
+        events.current.on(EnumTreeViewExtendedEvent.OnBlur, callback),
+      onDidChangeSelection: callback =>
+        events.current.on(
+          EnumTreeViewExtendedEvent.OnDidChangeSelection,
+          callback
+        ),
+      hasDirectFocus: () => wrapperRef.current === document.activeElement,
 
-			const newName = item.label
+      onDidChangeModel: callback =>
+        events.current.on(EnumTreeViewExtendedEvent.DidChangeModel, callback),
+      onceDidChangeModel: callback =>
+        events.current.once(EnumTreeViewExtendedEvent.DidChangeModel, callback),
+      onDidUpdate: callback =>
+        events.current.on(EnumTreeViewExtendedEvent.DidUpdate, callback),
+      onceDidUpdate: callback =>
+        events.current.once(EnumTreeViewExtendedEvent.DidUpdate, callback),
 
-			const newPath = model.root.pathfx.join(parentDir.path, newName)
+      events: events.current
+    }
 
-			if (item.type && item.label) {
-				model.root.dispatch({
-					type: EnumBirchWatchEvent.Added,
-					folder: parentDir.path,
-					item: item,
-				})
-				treeViewHandleExtended.current.setActiveItem(newPath)
-				treeViewHandleExtended.current.setPseudoActiveItem(null!)
-				setTimeout(() => {
-					const item = treeViewHandleExtended.current.getActiveItem()
-					item.details.command && item.details.command.handler!(item)
-					treeViewHandleExtended.current.events.emit(EnumTreeViewExtendedEvent.OnDidChangeSelection, item as BirchItem)
-				}, 0)
+    if (typeof onReady === 'function') {
+      onReady(handle)
+    }
 
-			}
-
-		}
-
-		const handle: ITreeViewExtendedHandle = {
-
-			id,
-
-			getModel: () => model,
-
-			getActiveItem: () => birchContextRef.current.activeSelection.activeItem,
-			setActiveItem: updateActiveItem,
-			getPseudoActiveItem: () => birchContextRef.current.activeSelection.pseudoActiveItem,
-			setPseudoActiveItem: updatePseudoActiveItem,
-
-			openFolder: openFolder,
-			closeFolder: closeFolder,
-			toggleFolder: toggleFolder,
-			collapseAll: collapseAll,
-			getItemHandle: getItemHandle,
-			ensureVisible: ensureVisible,
-
-			unlinkItem: async (fileOrDirOrPath: BirchItem | BirchFolder | string) => unlinkItem(fileOrDirOrPath),
-			rename: async (fileOrDirOrPath: BirchItem | BirchFolder | string) => supervisePrompt(await promptRename(fileOrDirOrPath as any)),
-			newItem: async (dirOrPath: BirchFolder | string, iconPath?: string) => {
-				const result = await promptNewItem(dirOrPath as any, iconPath)
-				supervisePrompt(result)
-			},
-			newFolder: async (dirOrPath: BirchFolder | string) => {
-				const result = await promptNewFolder(dirOrPath as any)
-				supervisePrompt(result)	
-			},
-			createdItem: async (item: ITreeItem, parentDir: BirchFolder) => createdItem(item, parentDir),
-			onBlur: (callback) => events.current.on(EnumTreeViewExtendedEvent.OnBlur, callback),
-			onDidChangeSelection: (callback) => events.current.on(EnumTreeViewExtendedEvent.OnDidChangeSelection, callback),
-			hasDirectFocus: () => wrapperRef.current === document.activeElement,
-
-			onDidChangeModel: (callback) => events.current.on(EnumTreeViewExtendedEvent.DidChangeModel, callback),
-			onceDidChangeModel: (callback) => events.current.once(EnumTreeViewExtendedEvent.DidChangeModel, callback),
-			onDidUpdate: (callback) => events.current.on(EnumTreeViewExtendedEvent.DidUpdate, callback),
-			onceDidUpdate: (callback) => events.current.once(EnumTreeViewExtendedEvent.DidUpdate, callback),
-
-			events: events.current,
-
-		}
-
-		if (typeof onReady === 'function') {
-			onReady(handle)
-		}
-
-		treeViewHandleExtended.current = handle
-
-	}, [viewId])
-
+    treeViewHandleExtended.current = handle
+  }, [viewId])
 }

@@ -1,17 +1,13 @@
 {
   "name": "react-birch",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Stylish solution for rendering nested trees in React apps",
-  "scripts": {
-    "build": "tsc",
-    "lint": "berun-dev lint"
+  "main": "dist/index.js",
+  "author": "Tinia Labs",
+  "bugs": {
+    "url": "https://github.com/tinialabs/react-birch#issues"
   },
-  "main": "dist/",
-  "typings": "dist/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tinialabs/react-birch.git"
-  },
+  "homepage": "https://github.com/tinialabs/react-birch#readme",
   "keywords": [
     "react",
     "virtualized",
@@ -23,22 +19,29 @@
     "object",
     "list"
   ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "berun-dev lint"
+  },
+  "typings": "dist/index.d.ts",
   "dependencies": {
-    "@githubprimer/octicons-react": "^8.5.0",
-    "birch-context-menu": "^1.0.5",
-    "birch-event-emitter": "^1.0.5",
+    "birch-context-menu": "^1.1.0",
+    "birch-event-emitter": "^1.1.0",
     "classnames": "^2.2.6",
-    "mobx": "^4.15.0",
-    "p-series": "^1.0.0",
+    "mobx": "^4.15.4",
+    "p-series": "^1.1.0",
     "path-fx": "^2.1.1",
     "react-window": "^1.8.5",
-    "styled-components": "^4.4.1",
-    "styled-system": "^4.1.0"
+    "styled-components": "^5.0.1",
+    "styled-system": "^4.2.4"
   },
-  "author": "Tinia Labs",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tinialabs/react-birch#issues"
+  "devDependencies": {
+    "@types/react": "^16.9.22"
   },
-  "homepage": "https://github.com/tinialabs/react-birch#readme"
+  "peerDependencies": {}
 }

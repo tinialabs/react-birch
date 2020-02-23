@@ -1,19 +1,23 @@
-import { BirchFolder, BirchItem } from '../../models'
+import { BirchFolder, BirchItem } from '..'
 import { PromptHandle } from './PromptHandle'
-import { EnumTreeItemType} from '../../types'
+import { EnumTreeItemType } from '../../types'
 
 export class PromptHandleNewItem extends PromptHandle {
-	private _birchId: number = BirchItem.nextId()
-	constructor(public readonly type: EnumTreeItemType, public readonly parent: BirchFolder, public readonly iconPath: string) {
-		super()
-	}
+  private _birchId: number = BirchItem.nextId()
 
-	get birchId(): number {
-		return this._birchId
-	}
+  constructor(
+    public readonly type: EnumTreeItemType,
+    public readonly parent: BirchFolder,
+    public readonly iconPath: string
+  ) {
+    super()
+  }
 
-	get depth() {
-		return this.parent.depth + 1
-	}
+  get birchId(): number {
+    return this._birchId
+  }
 
+  get depth() {
+    return this.parent.depth + 1
+  }
 }

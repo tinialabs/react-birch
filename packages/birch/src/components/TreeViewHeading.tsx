@@ -2,10 +2,9 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { space, fontFamily, color } from 'styled-system'
-import { ITreeViewExtendedHandle } from '../types';
+import { ITreeViewExtendedHandle } from '../types'
 
-const Flex = styled.div.attrs({
-})`
+const Flex = styled.div.attrs({})`
   display: flex;
   ${space};
 ` as React.FC<any>
@@ -45,36 +44,47 @@ const HeadingIcon = styled<any>('i')`
 `
 
 export const TreeViewHeadingIcons = styled.div.attrs({
-  py: 2,
+  py: 2
 })`
   margin-left: auto;
   opacity: 0;
   display: flex;
-  ${space} 
+  ${space}
 `
 
 export interface TreeViewHeadingProps {
   id: number
-  title: string,
-  titleMenus: { command: string, icon: string, handler?: (handle: ITreeViewExtendedHandle) => void }[]
+  title: string
+  titleMenus: {
+    command: string
+    icon: string
+    handler?: (handle: ITreeViewExtendedHandle) => void
+  }[]
   handle: React.MutableRefObject<ITreeViewExtendedHandle>
 }
 
-export const TreeViewHeading: React.FC<TreeViewHeadingProps> = ({ id, title, titleMenus, handle }) => {
-
+export const TreeViewHeading: React.FC<TreeViewHeadingProps> = ({
+  id,
+  title,
+  titleMenus,
+  handle
+}) => {
   const icons = useMemo(() => {
-    return titleMenus.map(({ command, icon, handler }) =>
-    <HeadingIcon key={command} onClick={() => { handler!(handle.current) }} icon={icon} />)
-  }
-  , [titleMenus, id, handle.current && handle.current.id])
+    return titleMenus.map(({ command, icon, handler }) => (
+      <HeadingIcon
+        key={command}
+        onClick={() => {
+          handler!(handle.current)
+        }}
+        icon={icon}
+      />
+    ))
+  }, [titleMenus, id, handle.current && handle.current.id])
 
   return (
     <Flex mr={2}>
       <HeadingText>{title}</HeadingText>
-      <TreeViewHeadingIcons>
-        {icons}
-      </TreeViewHeadingIcons>
+      <TreeViewHeadingIcons>{icons}</TreeViewHeadingIcons>
     </Flex>
   )
-  
-} 
+}

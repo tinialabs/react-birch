@@ -1,5 +1,5 @@
-import Menu from './StyledMenu'
 import styled from 'styled-components'
+import Menu from './StyledMenu'
 
 const StyledSubMenu = styled(Menu)`
     position: absolute;

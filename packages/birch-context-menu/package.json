@@ -1,25 +1,13 @@
 {
   "name": "birch-context-menu",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Custom context menu for react",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tinialabs/react-birch.git"
+  "main": "dist/index.js",
+  "author": "Tinia Labs",
+  "bugs": {
+    "url": "https://github.com/tinialabs/react-birch#issues"
   },
-  "scripts": {
-    "build": "tsc",
-    "lint": "berun-dev lint"
-  },
-  "main": "dist/",
-  "typings": "dist/",
-  "dependencies": {
-    "birch-event-emitter": "^1.0.5",
-    "styled-components": "^4.3.2"
-  },
-  "peerDependencies": {
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0"
-  },
+  "homepage": "https://github.com/tinialabs/react-birch#readme",
   "keywords": [
     "right",
     "click",
@@ -30,10 +18,23 @@
     "react-birch",
     "tinia"
   ],
-  "author": "Tinia Labs",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/tinialabs/react-birch#issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
   },
-  "homepage": "https://github.com/tinialabs/react-birch#readme"
+  "scripts": {
+    "build": "tsc",
+    "lint": "berun-dev lint"
+  },
+  "typings": "dist/index.d.ts",
+  "dependencies": {
+    "birch-event-emitter": "^1.1.0",
+    "styled-components": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.22",
+    "@types/react-dom": "^16.9.5"
+  },
+  "peerDependencies": {}
 }

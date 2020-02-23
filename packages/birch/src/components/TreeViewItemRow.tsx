@@ -1,10 +1,14 @@
 import * as React from 'react'
 
+import { useCallback, forwardRef, useState, useContext } from 'react'
+import cn from 'classnames'
+import styled, { ThemeContext } from 'styled-components'
+import { themeGet, color, space } from 'styled-system'
 import {
   BirchFolder,
   BirchItem,
   PromptHandleRename,
-  PromptHandle,
+  PromptHandle
 } from '../models'
 
 import {
@@ -13,15 +17,9 @@ import {
   ITreeViewItemRendererProps
 } from '../types'
 
-import { useCallback, forwardRef, useState, useContext } from 'react';
-import cn from 'classnames'
-
-import styled from 'styled-components'
 import { Icon } from './Icon'
-import { themeGet, color, space } from 'styled-system'
-import { useDecorationsChild } from './BirchUseDecorations';
-import { usePromptsChild } from './BirchUsePrompts';
-import { ThemeContext } from 'styled-components'
+import { useDecorationsChild } from './BirchUseDecorations'
+import { usePromptsChild } from './BirchUsePrompts'
 
 /* STYLED WIDGETS */
 
@@ -81,14 +79,11 @@ const TreeViewItemRowStyle = styled('div')`
   }
 
   &.dragover {
-     background-color: ${themeGet('colors.accent2')};
+    background-color: ${themeGet('colors.accent2')};
   }
-
-
 `
 
 const FolderToggleIcon = styled.span`
-
   display: inline-block;
   font: normal normal normal 18px/1 'default-icons';
   font-size: 18px;
@@ -100,151 +95,178 @@ const FolderToggleIcon = styled.span`
     height: inherit;
     width: inherit;
     display: inline-block;
- 
-    content: ${({ open }: { open: boolean}) => (!open) ?
-    "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzY0NjQ2NSIgZD0iTTYgNHY4bDQtNC00LTR6bTEgMi40MTRMOC41ODYgOCA3IDkuNTg2VjYuNDE0eiIvPjwvc3ZnPg==')"
-    : "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzY0NjQ2NSIgZD0iTTExIDEwSDUuMzQ0TDExIDQuNDE0VjEweiIvPjwvc3ZnPg==')"
-  };
+
+    content: ${({ open }: { open: boolean }) =>
+      !open
+        ? "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzY0NjQ2NSIgZD0iTTYgNHY4bDQtNC00LTR6bTEgMi40MTRMOC41ODYgOCA3IDkuNTg2VjYuNDE0eiIvPjwvc3ZnPg==')"
+        : "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzY0NjQ2NSIgZD0iTTExIDEwSDUuMzQ0TDExIDQuNDE0VjEweiIvPjwvc3ZnPg==')"};
   }
 `
 
 const TreeViewItemLabel = styled.span`
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    color: ${themeGet('colors.primary')};
-  `
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: ${themeGet('colors.primary')};
+`
 
 const TreeViewItemFileName = styled.span`
+  font: inherit;
+  color: inherit;
+  user-select: none;
+  margin-left: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
+  & input[type='text'] {
+    display: block;
+    width: 500px;
+    margin: 0;
     font: inherit;
+    border-radius: 3px;
+    padding: 1px 2px;
+    border: 0;
+    background: transparent;
     color: inherit;
-    user-select: none;
-    margin-left: 3px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    outline: none;
+    position: relative;
+    z-index: 1;
+    margin-top: -2px;
+    top: 1px;
+    left: -2px;
 
-    & input[type='text'] {
-      display: block;
-      width: 500px;
-      margin: 0;
-      font: inherit;
-      border-radius: 3px;
-      padding: 1px 2px;
-      border: 0;
-      background: transparent;
-      color: inherit;
-      outline: none;
-      position: relative;
-      z-index: 1;
-      margin-top: -2px;
-      top: 1px;
-      left: -2px;
-
-      &:focus {
-        box-shadow: 0px 0px 1px 1px ${themeGet('colors.accent3')};
-      }
+    &:focus {
+      box-shadow: 0px 0px 1px 1px ${themeGet('colors.accent3')};
     }
+  }
 `
 
 const useForceUpdate = () => {
-	const forceUpdater = useState(0)[1]
-	return (resolver?: Function) => forceUpdater((_st) => { resolver && resolver(); return (_st + 1) })
+  const forceUpdater = useState(0)[1]
+  return (resolver?: Function) =>
+    forceUpdater(_st => {
+      if (resolver) {
+        resolver()
+      }
+      return _st + 1
+    })
 }
-
 
 function useTheme() {
   return useContext(ThemeContext)
 }
 
+export const TreeViewItemStyled = forwardRef(
+  (
+    {
+      item,
+      itemType,
+      onClick,
+      decorations,
+      itemMenus,
+      ...props
+    }: ITreeViewItemRendererProps,
+    ref
+  ) => {
+    const forceUpdate = useForceUpdate()
+    const theme: any = useTheme()
 
-export const TreeViewItemStyled = forwardRef(({ item, itemType, onClick, decorations, itemMenus, ...props }: ITreeViewItemRendererProps, ref) => {
+    /**
+     * Cascade Decorations
+     */
+    useDecorationsChild({ decorations, forceUpdate })
 
+    /**
+     * isPrompt state helper for Renaming and Adding New Folders and Items
+     */
+    const isPrompt = usePromptsChild(itemType)[0]
 
-  const forceUpdate =useForceUpdate() 
-  const theme: any = useTheme()
+    /**
+     * On Click Callback
+     */
+    const handleClick = useCallback(
+      (ev: React.MouseEvent) => {
+        if (
+          itemType === EnumBirchItemType.BirchItem ||
+          itemType === EnumBirchItemType.BirchFolder
+        ) {
+          onClick(ev, item as BirchItem, itemType)
+        }
+      },
+      [item, itemType, onClick]
+    )
 
-  /**
-	 * Cascade Decorations
-	 */
-  useDecorationsChild({ decorations,  forceUpdate })
-
-  /**
-	 * isPrompt state helper for Renaming and Adding New Folders and Items
-	 */
-  const isPrompt = usePromptsChild(itemType)[0]
-
-  /**
-  * On Click Callback
-  */
-  const handleClick = useCallback((ev: React.MouseEvent) => {
-    if (
-      itemType === EnumBirchItemType.BirchItem ||
-      itemType === EnumBirchItemType.BirchFolder
-    ) {
-      onClick(ev, item as BirchItem, itemType)
+    if ((item as BirchItem).disposed) {
+      return null
     }
-  }, [item, itemType, onClick])
 
-  if (item["disposed"]) {
-    return null
-  }
-
-  /**
-  * Current item state helpers
-  */
- const isDirExpanded =
-    itemType === EnumBirchItemType.BirchFolder
-      ? (item as BirchFolder).expanded
-      : itemType === EnumBirchItemType.RenamePrompt &&
-        (item as PromptHandleRename).target.type === EnumTreeItemType.Folder
+    /**
+     * Current item state helpers
+     */
+    const isDirExpanded =
+      itemType === EnumBirchItemType.BirchFolder
+        ? (item as BirchFolder).expanded
+        : itemType === EnumBirchItemType.RenamePrompt &&
+          (item as PromptHandleRename).target.type === EnumTreeItemType.Folder
         ? ((item as PromptHandleRename).target as BirchFolder).expanded
         : false
 
-  const itemOrFolder =
-    itemType === EnumBirchItemType.BirchItem ||
+    const itemOrFolder =
+      itemType === EnumBirchItemType.BirchItem ||
       itemType === EnumBirchItemType.NewItemPrompt ||
       (itemType === EnumBirchItemType.RenamePrompt &&
         (item as PromptHandleRename).target.constructor === BirchItem)
-      ? 'item'
-      : 'folder'
+        ? 'item'
+        : 'folder'
 
-  /**
-  * Create right hand side icon array
-  */
-  const icons = itemMenus.map(({ icon, command, handler }) =>
-    <WidgetStyle key={command} icon={theme.icons[icon]} onClick={(e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      handler(item)
-    }} />
-  )
+    /**
+     * Create right hand side icon array
+     */
+    const icons = itemMenus.map(({ icon, command, handler }) => (
+      <WidgetStyle
+        key={command}
+        icon={theme.icons[icon]}
+        onClick={e => {
+          e.preventDefault()
+          e.stopPropagation()
+          handler(item)
+        }}
+      />
+    ))
 
-  /**
-  * Render item row
-  */
-  return (
-    <TreeViewItemRowStyle
-      ref={ref as any}
-      className={cn(decorations ? decorations.classlist : null)}
-      data-depth={item.depth}
-      onClick={handleClick}
-      title={!isPrompt ? (item as BirchItem).path : undefined}
-      {...props}
-    >
-      {itemOrFolder === 'folder' ? (
-        <FolderToggleIcon open={isDirExpanded} />
-      ) : null}
+    /**
+     * Render item row
+     */
+    return (
+      <TreeViewItemRowStyle
+        ref={ref as any}
+        className={cn(decorations ? decorations.classlist : null)}
+        data-depth={item.depth}
+        onClick={handleClick}
+        title={!isPrompt ? (item as BirchItem).path : undefined}
+        {...props}
+      >
+        {itemOrFolder === 'folder' ? (
+          <FolderToggleIcon open={isDirExpanded} />
+        ) : null}
 
-      <TreeViewItemLabel className="birch-label">
-        {itemOrFolder === 'item' && (
-          <Icon mx={1} src={ (item as BirchItem).iconPath || "octicons/file"} />
-        )}
-        <TreeViewItemFileName >
-          {isPrompt && item instanceof PromptHandle ? <item.ProxiedInput /> : (item as BirchItem).label}
-        </TreeViewItemFileName>
-      </TreeViewItemLabel>
-      {icons}
-    </TreeViewItemRowStyle>
-  )
-})
+        <TreeViewItemLabel className="birch-label">
+          {itemOrFolder === 'item' && (
+            <Icon
+              mx={1}
+              src={(item as BirchItem).iconPath || 'octicons/file'}
+            />
+          )}
+          <TreeViewItemFileName>
+            {isPrompt && item instanceof PromptHandle ? (
+              <item.ProxiedInput />
+            ) : (
+              (item as BirchItem).label
+            )}
+          </TreeViewItemFileName>
+        </TreeViewItemLabel>
+        {icons}
+      </TreeViewItemRowStyle>
+    )
+  }
+)

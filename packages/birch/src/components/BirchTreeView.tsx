@@ -3,224 +3,259 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 import { FixedSizeList } from 'react-window'
 
-import {
-	TreeViewModel,
-} from '../models'
+import { TreeViewModel } from '../models'
+
+import { renderBirchTreeViewItem } from './BirchTreeViewItem'
 
 import {
-	renderBirchTreeViewItem
-} from './BirchTreeViewItem'
-
-import {
-	IBirchTreeItemProps,
-	IBirchContext,
-	EnumTreeViewExtendedEvent,
-	BirchTreeViewPropsInternal
+  IBirchTreeItemProps,
+  IBirchContext,
+  EnumTreeViewExtendedEvent,
+  BirchTreeViewPropsInternal
 } from '../types'
 
-import { usePrompts } from './BirchUsePrompts';
-import { useActiveSelection } from './BirchUseSelection';
-import { useContextMenuContainer } from './BirchUseContextMenu';
-import { useDragDropContainer } from './BirchUseDragDrop';
-import { useDecorations } from './BirchUseDecorations';
-import { useHandleApi } from './BirchUseHandleApi';
-import { useHandleSimpleApi, TreeViewHandle } from './BirchUseHandleSimpleApi';
-import { Decoration } from '../models/decoration';
+import { usePrompts } from './BirchUsePrompts'
+import { useActiveSelection } from './BirchUseSelection'
+import { useContextMenuContainer } from './BirchUseContextMenu'
+import { useDragDropContainer } from './BirchUseDragDrop'
+import { useDecorations } from './BirchUseDecorations'
+import { useHandleApi } from './BirchUseHandleApi'
+import { useHandleSimpleApi, TreeViewHandle } from './BirchUseHandleSimpleApi'
+import { Decoration } from '../models/decoration'
 
 const useForceUpdate = () => {
-	const forceUpdater = useState(0)[1]
-	return (resolver) => forceUpdater((_st) => { resolver && resolver(); 
-		return (_st + 1) })
+  const forceUpdater = useState(0)[1]
+  return resolver =>
+    forceUpdater(_st => {
+      if (resolver) {
+        resolver()
+      }
+      return _st + 1
+    })
 }
 
-export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(({ viewId, title, renderItem, options, handle }) => {
+export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
+  ({ viewId, title, renderItem, options, handle }) => {
+    const listRef = React.useRef<any>()
+    const wrapperRef = React.useRef<HTMLDivElement>()
+    const forceUpdate = useForceUpdate()
 
-	const listRef = React.useRef<any>()
-	const wrapperRef = React.useRef<HTMLDivElement>()
-	const forceUpdate = useForceUpdate()
+    const birchContextRef = useInstanceRef<IBirchContext>(
+      () =>
+        ({
+          viewId: null,
+          disposables: new DisposablesComposite(),
+          idxTorendererPropsCache: new Map() as Map<
+            number,
+            IBirchTreeItemProps
+          >,
+          events: new EventEmitter(),
+          model: new TreeViewModel({ options, viewId }),
+          didUpdate: () =>
+            birchContextRef.current.events.emit(
+              EnumTreeViewExtendedEvent.DidUpdate
+            ),
+          itemIdToRefMap: new Map<number, HTMLDivElement>(),
+          forceUpdate,
+          listRef,
+          wrapperRef
+        } as any)
+    )
 
-	const birchContextRef = useInstanceRef<IBirchContext>(() => ({
-		viewId: null,
-		disposables: new DisposablesComposite(),
-		idxTorendererPropsCache: new Map() as Map<number, IBirchTreeItemProps>,
-		events: new EventEmitter(),
-		model: new TreeViewModel({ options, viewId }),
-		didUpdate: () => birchContextRef.current.events.emit(EnumTreeViewExtendedEvent.DidUpdate),
-		itemIdToRefMap: new Map<number, HTMLDivElement>(),
-		forceUpdate,
-		listRef,
-		wrapperRef
+    //
+    // props based
+    //
+    birchContextRef.current.options = options
 
-	}) as any);
+    birchContextRef.current.treeViewHandleExtended = handle
 
-	//
-	// props based
-	//
-	birchContextRef.current.options = options
+    birchContextRef.current.treeViewHandleSimple = useMemo(
+      () => TreeViewHandle.createTreeView(viewId, options),
+      [viewId, options.treeDataProvider.id]
+    )
 
-	birchContextRef.current.treeViewHandleExtended = handle
+    if (viewId !== birchContextRef.current.viewId) {
+      const birchContext = birchContextRef.current
 
-	birchContextRef.current.treeViewHandleSimple = useMemo(
-		() => TreeViewHandle.createTreeView(viewId, options),
-		[viewId, options.treeDataProvider.id]
-	)
+      birchContext.viewId = viewId
+      birchContext.getItemAtIndex = undefined as any
+      birchContext.commitDebounce = undefined as any
+      birchContext.adjustedRowCount = undefined as any
+      birchContext.treeItemView = undefined as any
+      birchContext.prompts = {} as any
+      birchContext.activeSelection = {} as any
+      birchContext.contextMenu = {} as any
+      birchContext.dragDrop = {} as any
+      birchContext.idxTorendererPropsCache = new Map()
 
-	if (viewId !== birchContextRef.current.viewId) {
-		const birchContext = birchContextRef.current
+      birchContext.decorations = {
+        activeItemDecoration: new Decoration('active'),
+        pseudoActiveItemDecoration: new Decoration('pseudo-active')
+      }
 
-		birchContext.viewId = viewId
-		birchContext.getItemAtIndex = undefined as any
-		birchContext.commitDebounce = undefined as any
-		birchContext.adjustedRowCount = undefined as any
-		birchContext.treeItemView = undefined as any
-		birchContext.prompts = {} as any
-		birchContext.activeSelection = {} as any
-		birchContext.contextMenu = {} as any
-		birchContext.dragDrop = {} as any
-		birchContext.idxTorendererPropsCache = new Map()
+      birchContext.itemIdToRefMap.clear()
 
-		birchContext.decorations = {
-			activeItemDecoration: new Decoration('active'),
-			pseudoActiveItemDecoration: new Decoration('pseudo-active'),
-		}
+      if (birchContext.model.viewId === viewId) {
+        // first time through, otherwise handled in side effect below
+        birchContext.disposables.add(
+          birchContext.model.onDidBranchUpdate(() =>
+            birchContextRef.current.commitDebounce()
+          )
+        )
+      }
+    }
 
-		birchContext.itemIdToRefMap.clear()
+    useEffect(() => {
+      const birchContext = birchContextRef.current
 
-		if (birchContext.model.viewId == viewId) {
-			// first time through, otherwise handled in side effect below
-			birchContext.disposables.add(birchContext.model.onDidBranchUpdate(() => birchContextRef.current.commitDebounce()))
-		}
-	}
+      const prevModel = birchContext.model
+      if (birchContext.model.viewId === viewId) {
+        return undefined
+      }
 
-	useEffect(() => {
+      // Reinitialize Model on reload
 
-		const birchContext = birchContextRef.current
+      const newModel = new TreeViewModel({ options, viewId })
 
-		const prevModel = birchContext.model
-		if (birchContext.model.viewId == viewId) { return undefined }
+      if (birchContext.listRef.current) {
+        birchContext.listRef.current.scrollTo(prevModel.scrollOffset)
+      }
 
-		// Reinitialize Model on reload
+      birchContext.events.emit(
+        EnumTreeViewExtendedEvent.DidChangeModel,
+        prevModel,
+        newModel
+      )
 
-		const newModel = new TreeViewModel({ options, viewId })
+      birchContext.model = newModel
+      birchContext.listRef.current = undefined
 
-		if (birchContext.listRef.current) {
-			birchContext.listRef.current.scrollTo(prevModel.scrollOffset)
-		}
+      birchContext.disposables.add(
+        newModel.onDidBranchUpdate(() =>
+          birchContextRef.current.commitDebounce()
+        )
+      )
 
-		birchContext.events.emit(EnumTreeViewExtendedEvent.DidChangeModel, prevModel, newModel)
+      return () => {
+        birchContextRef.current.disposables.dispose()
+        birchContextRef.current.model.dispose()
+      }
+    }, [viewId])
 
-		birchContext.model = newModel
-		birchContext.listRef.current = undefined
+    /**
+     * Use Active Selection for allowing mouse and keyboard to select items and folders
+     */
+    useActiveSelection(birchContextRef)
 
-		birchContext.disposables.add(newModel.onDidBranchUpdate(() => birchContextRef.current.commitDebounce()))
+    /**
+     * Use Prompts for Renaming and Adding New Folders and Items
+     */
+    usePrompts(birchContextRef)
 
-		return () => {
-			birchContextRef.current.disposables.dispose()
-			birchContextRef.current.model.dispose()
-		}
+    /**
+     * Use Extended Handle API
+     */
+    useHandleApi(birchContextRef)
 
-	}, [viewId])
+    /**
+     * Use Simple Handle API
+     */
+    useHandleSimpleApi(birchContextRef)
 
-/**
- * Use Active Selection for allowing mouse and keyboard to select items and folders
- */
-useActiveSelection(birchContextRef)
+    /**
+     * Use Context Menu for context-sensitive popup menus
+     */
+    useContextMenuContainer(birchContextRef)
 
-/**
- * Use Prompts for Renaming and Adding New Folders and Items
- */
-usePrompts(birchContextRef)
+    /**
+     * Use Drag and Drop Service for moving items and folders
+     */
+    useDragDropContainer(birchContextRef)
 
-/**
-  * Use Extended Handle API
-  */
-useHandleApi(birchContextRef)
+    /**
+     * Hook up decorations sercice
+     */
+    useDecorations(birchContextRef)
 
-/**
- * Use Simple Handle API
- */
-useHandleSimpleApi(birchContextRef)
+    const renderBirchItem = renderBirchTreeViewItem(birchContextRef, renderItem)
 
-/**
-* Use Context Menu for context-sensitive popup menus
-*/
-useContextMenuContainer(birchContextRef)
+    useEffect(() => {
+      if (options.onCreateView) {
+        options.onCreateView(
+          birchContextRef.current.treeViewHandleSimple,
+          handle.current
+        )
+      }
+    }, [birchContextRef.current.treeViewHandleSimple, viewId])
 
-/**
-* Use Drag and Drop Service for moving items and folders
-*/
-useDragDropContainer(birchContextRef)
+    /** Set up FixedSizeList callbacks
+     */
+    const handleListScroll = useCallback(
+      ({ scrollOffset }) => {
+        birchContextRef.current.model.saveScrollOffset(scrollOffset)
+      },
+      [viewId, birchContextRef.current.model]
+    )
 
-/**
-* Hook up decorations sercice
-*/
-useDecorations(birchContextRef)
+    const getItemKey = useCallback(
+      (index: number) =>
+        birchContextRef.current.getItemAtIndex(index).item.birchId,
+      [birchContextRef.current.getItemAtIndex, viewId]
+    )
 
-const renderBirchItem = renderBirchTreeViewItem(birchContextRef, renderItem)
+    /* RENDER */
 
-useEffect(() => {
-	options.onCreateView && options.onCreateView(birchContextRef.current.treeViewHandleSimple, handle.current)
-}, [birchContextRef.current.treeViewHandleSimple, viewId])
-
-/** Set up FixedSizeList callbacks
-*/
-const handleListScroll = useCallback(({ scrollOffset }) => {
-	birchContextRef.current.model.saveScrollOffset(scrollOffset)
-}, [viewId, birchContextRef.current.model])
-
-const getItemKey = useCallback((index: number) =>
-	birchContextRef.current.getItemAtIndex(index).item.birchId, [birchContextRef.current.getItemAtIndex, viewId]
+    return (
+      <div
+        className="birch-tree-view"
+        {...birchContextRef.current.activeSelection.selectionProps}
+        onContextMenu={birchContextRef.current.contextMenu.handleContextMenu}
+        ref={birchContextRef.current.wrapperRef}
+        tabIndex={-1}
+      >
+        {options.itemHeight! > 0 ? (
+          <FixedSizeList
+            height={
+              options.height! > 0
+                ? options.height
+                : options.itemHeight! * birchContextRef.current.adjustedRowCount
+            }
+            itemData={[]}
+            itemSize={options.itemHeight}
+            /*	itemKey={getItemKey} */
+            itemCount={birchContextRef.current.adjustedRowCount}
+            overscanCount={5}
+            ref={birchContextRef.current.listRef}
+            onScroll={handleListScroll}
+            style={options.style}
+            className={options.className}
+          >
+            {renderBirchItem}
+          </FixedSizeList>
+        ) : (
+          <div ref={birchContextRef.current.listRef}>
+            {Array.apply(null, {
+              length: birchContextRef.current.adjustedRowCount
+            }).map((_, index) => {
+              return renderBirchItem({ index, style: options.style })
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 )
-
-/* RENDER */
-
-return <div
-	className='birch-tree-view'
-	{...birchContextRef.current.activeSelection.selectionProps}
-	onContextMenu={birchContextRef.current.contextMenu.handleContextMenu}
-	ref={birchContextRef.current.wrapperRef}
-	tabIndex={-1}>
-	{options.itemHeight! > 0 ? (
-		<FixedSizeList
-			height={options.height! > 0 ? options.height : options.itemHeight! * birchContextRef.current.adjustedRowCount}
-			itemData={[]}
-			itemSize={options.itemHeight}
-			/*	itemKey={getItemKey}*/
-			itemCount={birchContextRef.current.adjustedRowCount}
-			overscanCount={5}
-			ref={birchContextRef.current.listRef}
-			onScroll={handleListScroll}
-			style={options.style}
-			className={options.className}
-		>
-			{renderBirchItem}
-		</FixedSizeList>
-	) : (
-			<div ref={birchContextRef.current.listRef}>
-				{Array.apply(null, { length: birchContextRef.current.adjustedRowCount }).map(
-					(_, index) => {
-						return renderBirchItem({ index, style: options.style })
-					}
-				)}
-			</div>
-		)}
-</div>
-
-})
-
-
-
 
 type InstanceRef<T> = { current: T }
 
 const noValue = Symbol('lazyRef.noValue')
 
 export function useInstanceRef<T>(getInitialValue: () => T): InstanceRef<T> {
-	const lazyRef = useRef<T | Symbol>(noValue)
+  const lazyRef = useRef<T | symbol>(noValue)
 
-	if (lazyRef.current === noValue) {
-		lazyRef.current = getInitialValue()
-	}
+  if (lazyRef.current === noValue) {
+    lazyRef.current = getInitialValue()
+  }
 
-	return lazyRef as InstanceRef<T>
+  return lazyRef as InstanceRef<T>
 }
