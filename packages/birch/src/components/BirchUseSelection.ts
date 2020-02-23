@@ -97,6 +97,9 @@ export const useActiveSelection = (
         pseudoActiveItem.current = fileH
         forceUpdate()
       }
+      if (fileH) {
+        await treeViewHandleExtended.current.ensureVisible(fileH)
+      }
     },
     []
   )
