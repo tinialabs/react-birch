@@ -3,7 +3,7 @@ import * as React from 'react'
 import { useCallback, forwardRef, useState, useContext } from 'react'
 import cn from 'classnames'
 import styled, { ThemeContext } from 'styled-components'
-import { themeGet, color, space } from 'styled-system'
+import { themeGet } from '@styled-system/theme-get'
 import {
   BirchFolder,
   BirchItem,

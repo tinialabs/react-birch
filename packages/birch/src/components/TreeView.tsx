@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { themeGet } from 'styled-system'
+import { themeGet } from '@styled-system/theme-get'
 import { TreeViewHeading, TreeViewHeadingIcons } from './TreeViewHeading'
 import { ITreeViewExtendedHandle, ITreeViewProps } from '../types'
 import { BirchTreeView } from './BirchTreeView'
