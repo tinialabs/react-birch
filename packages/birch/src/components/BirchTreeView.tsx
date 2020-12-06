@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import {
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useReducer
+} from 'react'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 import { FixedSizeList } from 'react-window'
 
@@ -24,14 +31,12 @@ import { useHandleSimpleApi, TreeViewHandle } from './BirchUseHandleSimpleApi'
 import { Decoration } from '../models/decoration'
 
 const useForceUpdate = () => {
-  const forceUpdater = useState(0)[1]
-  return resolver =>
-    forceUpdater(_st => {
-      if (resolver) {
-        resolver()
-      }
-      return _st + 1
-    })
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [, update] = useReducer(
+    (num: number): number => (num + 1) % 1_000_000,
+    0
+  )
+  return update as () => void
 }
 
 export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(

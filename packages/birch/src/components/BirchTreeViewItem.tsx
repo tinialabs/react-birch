@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useCallback, memo, useState } from 'react'
+import { useCallback, memo, useReducer } from 'react'
 
 import {
   BirchFolder,
@@ -69,14 +69,12 @@ interface BirchTreeViewItemProps {
 }
 
 const useForceUpdate = () => {
-  const forceUpdater = useState(0)[1]
-  return resolver =>
-    forceUpdater(_st => {
-      if (resolver) {
-        resolver()
-      }
-      return _st + 1
-    })
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [, update] = useReducer(
+    (num: number): number => (num + 1) % 1_000_000,
+    0
+  )
+  return update as () => void
 }
 
 const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {

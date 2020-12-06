@@ -1,6 +1,6 @@
 {
   "name": "birch-context-menu",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Custom context menu for react",
   "main": "dist/index.js",
   "author": "Tinia Labs",

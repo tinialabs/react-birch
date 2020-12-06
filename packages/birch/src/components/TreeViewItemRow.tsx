@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { useCallback, forwardRef, useState, useContext } from 'react'
+import { useCallback, forwardRef, useReducer, useContext } from 'react'
 import cn from 'classnames'
 import styled, { ThemeContext } from 'styled-components'
 import { themeGet } from '@styled-system/theme-get'
@@ -142,15 +142,14 @@ const TreeViewItemFileName = styled.span`
 `
 
 const useForceUpdate = () => {
-  const forceUpdater = useState(0)[1]
-  return (resolver?: Function) =>
-    forceUpdater(_st => {
-      if (resolver) {
-        resolver()
-      }
-      return _st + 1
-    })
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const [, update] = useReducer(
+    (num: number): number => (num + 1) % 1_000_000,
+    0
+  )
+  return update as () => void
 }
+
 
 function useTheme() {
   return useContext(ThemeContext)
