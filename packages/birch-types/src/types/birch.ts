@@ -1,9 +1,9 @@
-import { BirchFolder } from '../models/core/BirchFolder'
-import { BirchItem } from '../models/core/BirchItem'
-import { ITreeItem } from './ITreeItem'
-import { ITreeDataProvider } from './ITreeDataProvider'
+import { IBirchFolder } from '../models/core/IBirchFolder'
+import { IBirchItem } from '../models/core/IBirchItem'
+import type { ITreeItem } from './ITreeItem'
+import type { ITreeDataProvider } from './ITreeDataProvider'
 
-export enum BirchTreeEvent {
+export enum EnumBirchTreeEvent {
   WillChangeExpansionState = 1,
   DidChangeExpansionState,
   WillChangeParent,
@@ -24,39 +24,39 @@ export enum BirchTreeEvent {
  */
 export interface IBirchTreeSupervisor {
   // Helpers //
-  supervisedWatch(path: string, callback: BirchWatcherCallback)
+  supervisedWatch(path: string, callback: BirchWatcherCallbackType)
 
   // Event delegations //
 
-  notifyDidChangeTreeData(target: BirchItem | BirchFolder)
+  notifyDidChangeTreeData(target: IBirchItem | IBirchFolder)
 
   notifyWillChangeParent(
-    target: BirchItem | BirchFolder,
-    prevParent: BirchFolder,
-    newParent: BirchFolder
+    target: IBirchItem | IBirchFolder,
+    prevParent: IBirchFolder,
+    newParent: IBirchFolder
   )
   notifyDidChangeParent(
-    target: BirchItem | BirchFolder,
-    prevParent: BirchFolder,
-    newParent: BirchFolder
+    target: IBirchItem | IBirchFolder,
+    prevParent: IBirchFolder,
+    newParent: IBirchFolder
   )
 
-  notifyWillDispose(target: BirchItem | BirchFolder)
-  notifyDidDispose(target: BirchItem | BirchFolder)
+  notifyWillDispose(target: IBirchItem | IBirchFolder)
+  notifyDidDispose(target: IBirchItem | IBirchFolder)
 
-  notifyWillProcessWatchEvent(target: BirchFolder, event: IBirchWatcherEvent)
-  notifyDidProcessWatchEvent(target: BirchFolder, event: IBirchWatcherEvent)
+  notifyWillProcessWatchEvent(target: IBirchFolder, event: IBirchWatcherEvent)
+  notifyDidProcessWatchEvent(target: IBirchFolder, event: IBirchWatcherEvent)
 
-  notifyWillChangeExpansionState(target: BirchFolder, nowExpanded: boolean)
-  notifyDidChangeExpansionState(target: BirchFolder, nowExpanded: boolean)
+  notifyWillChangeExpansionState(target: IBirchFolder, nowExpanded: boolean)
+  notifyDidChangeExpansionState(target: IBirchFolder, nowExpanded: boolean)
 
-  notifyDidChangePath(target: BirchItem | BirchFolder)
+  notifyDidChangePath(target: IBirchItem | IBirchFolder)
 }
 
 /**
  * Function that when called should terminate a watch session associated with a folder
  */
-export type BirchWatchTerminator = (path?: string) => void
+export type BirchWatchTerminatorType = (path?: string) => void
 
 export interface IBirchCoreHost<T> extends ITreeDataProvider<T> {
   /**
@@ -88,10 +88,10 @@ export interface IBirchCoreHost<T> extends ITreeDataProvider<T> {
    * take the path parameter and terminate the associated watcher accordingly.*
    *
    */
-  watch?: (path: string) => BirchWatchTerminator
+  watch?: (path: string) => BirchWatchTerminatorType
 }
 
-export type BirchWatcherCallback = (event: IBirchWatcherEvent) => void
+export type BirchWatcherCallbackType = (event: IBirchWatcherEvent) => void
 
 export type IBirchWatcherEvent =
   | IBirchWatcherChangeEvent

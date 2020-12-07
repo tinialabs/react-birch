@@ -1,22 +1,23 @@
 import { useRef, useCallback, useMemo, useEffect } from 'react'
 
 import {
-  BirchFolder,
-  BirchItem,
-  BirchRoot,
-  PromptHandleNewItem,
-  PromptHandle,
-  PromptHandleRename,
-  EnumBirchWatchEvent
-} from '../models'
-
-import {
-  IBirchTreeItemProps,
   EnumBirchItemType,
   EnumTreeItemType,
-  IBirchContext,
-  EnumTreeViewExtendedEvent
-} from '../types'
+  EnumTreeViewExtendedEvent,
+  EnumBirchWatchEvent,
+  IBirchFolder,
+  IBirchItem,
+  IPromptHandleNewItem,
+  IPromptHandleRename,
+  IBirchTreeItemProps,
+  IBirchContext
+} from 'react-birch-types'
+
+import {
+  PromptHandleNewItem,
+  PromptHandle,
+  PromptHandleRename
+} from '../models'
 
 const BATCHED_UPDATE_MAX_DEBOUNCE_MS = 4
 
@@ -69,10 +70,10 @@ export const usePrompts = (
 
     return () => {
       if (!onePromise) {
-        onePromise = new Promise(res => {
-          resolver = res
+        onePromise = new Promise((resolve) => {
+          resolver = resolve
         })
-        onePromise.then(() => {
+        void onePromise.then(() => {
           onePromise = null!
           resolver = null
           didUpdate()
@@ -86,7 +87,7 @@ export const usePrompts = (
   }, [viewId])
 
   const supervisePrompt = useCallback(
-    (promptHandle: PromptHandleRename | PromptHandleNewItem) => {
+    (promptHandle: IPromptHandleRename | IPromptHandleNewItem) => {
       const {
         model,
         treeViewHandleExtended,
@@ -100,15 +101,14 @@ export const usePrompts = (
         })
 
         let didMarkInvalid = false
-        promptHandle.onChange(currentValue => {
+        promptHandle.onChange((currentValue) => {
           if (didMarkInvalid) {
             promptHandle.removeClassName('invalid')
             didMarkInvalid = false
           }
         })
 
-        let pulseTimer: number
-        promptHandle.onCommit(async newName => {
+        promptHandle.onCommit(async (newName) => {
           if (newName.trim() === '') {
             return
           }
@@ -127,7 +127,7 @@ export const usePrompts = (
             // "truthy" values won't be enough, must be explicit `true`
             if (res === true) {
               treeViewHandleExtended.current.onceDidUpdate(() => {
-                treeViewHandleExtended.current.ensureVisible(target)
+                void treeViewHandleExtended.current.ensureVisible(target)
               })
               model.root.dispatch({
                 type: EnumBirchWatchEvent.Moved,
@@ -159,7 +159,7 @@ export const usePrompts = (
                   item.details.command.handler!(item)
                   treeViewHandleExtended.current.events.emit(
                     EnumTreeViewExtendedEvent.OnDidChangeSelection,
-                    item as BirchItem
+                    item as IBirchItem
                   )
                 }
               }, 0)
@@ -174,7 +174,7 @@ export const usePrompts = (
   )
 
   const updatePromptHandle = useCallback(
-    (handle: PromptHandleNewItem | PromptHandleRename) => {
+    (handle: IPromptHandleNewItem | IPromptHandleRename) => {
       if (promptHandle.current === handle) {
         return
       }
@@ -188,15 +188,15 @@ export const usePrompts = (
 
       handle.onDestroy(commitDebounce)
 
-      promptHandle.current = handle
+      promptHandle.current = handle as PromptHandleNewItem | PromptHandleRename
     },
     [viewId]
   )
 
   const promptRename = useCallback(
     async (
-      pathOrItemEntry: string | BirchItem
-    ): Promise<PromptHandleRename> => {
+      pathOrItemEntry: string | IBirchItem
+    ): Promise<IPromptHandleRename> => {
       const { model, listRef } = birchContextRef.current
 
       await model.root.flushEventQueue()
@@ -206,8 +206,8 @@ export const usePrompts = (
           : pathOrItemEntry
 
       if (
-        !(itemEntry instanceof BirchItem) ||
-        itemEntry.constructor === BirchRoot
+        !(itemEntry.type === EnumTreeItemType.Item) ||
+        itemEntry.root === itemEntry
       ) {
         throw new TypeError(`Cannot rename object of type ${typeof itemEntry}`)
       }
@@ -233,19 +233,22 @@ export const usePrompts = (
 
   const promptNew = useCallback(
     async (
-      pathOrFolder: string | BirchFolder,
+      pathOrFolder: string | IBirchFolder,
       type: EnumTreeItemType,
       iconPath?: string
-    ): Promise<PromptHandleNewItem> => {
+    ): Promise<IPromptHandleNewItem> => {
       const { model, listRef } = birchContextRef.current
 
       await model.root.flushEventQueue()
-      const folder =
+
+      const folder: IBirchFolder =
         typeof pathOrFolder === 'string'
-          ? await model.root.forceLoadItemEntryAtPath(pathOrFolder)
+          ? ((await model.root.forceLoadItemEntryAtPath(
+              pathOrFolder
+            )) as IBirchFolder)
           : pathOrFolder
 
-      if (!(folder instanceof BirchFolder)) {
+      if (!(folder.type === EnumTreeItemType.Folder)) {
         throw new TypeError(
           `Cannot create new item prompt at object of type ${typeof folder}`
         )
@@ -278,7 +281,7 @@ export const usePrompts = (
   )
 
   const promptNewFolder = useCallback(
-    (pathOrFolder: string | BirchFolder): Promise<PromptHandleNewItem> => {
+    (pathOrFolder: string | IBirchFolder): Promise<IPromptHandleNewItem> => {
       return promptNew(pathOrFolder, EnumTreeItemType.Folder, '')
     },
     [viewId]
@@ -286,9 +289,9 @@ export const usePrompts = (
 
   const promptNewItem = useCallback(
     (
-      pathOrFolder: string | BirchFolder,
+      pathOrFolder: string | IBirchFolder,
       iconPath?: string
-    ): Promise<PromptHandleNewItem> => {
+    ): Promise<IPromptHandleNewItem> => {
       return promptNew(pathOrFolder, EnumTreeItemType.Item, iconPath)
     },
     [viewId]
@@ -343,7 +346,7 @@ export const usePrompts = (
             )!
             cached = {
               itemType:
-                item.constructor === BirchFolder
+                item.type === EnumTreeItemType.Item
                   ? EnumBirchItemType.BirchFolder
                   : EnumBirchItemType.BirchItem,
               item
@@ -369,7 +372,7 @@ export const usePrompts = (
           } else {
             cached = {
               itemType:
-                item && item.constructor === BirchFolder
+                item && item.type === EnumTreeItemType.Folder
                   ? EnumBirchItemType.BirchFolder
                   : EnumBirchItemType.BirchItem,
               item
@@ -398,7 +401,7 @@ export const usePrompts = (
   })
 }
 
-export const usePromptsChild = itemType => {
+export const usePromptsChild = (itemType) => {
   const isRenamePrompt = itemType === EnumBirchItemType.RenamePrompt
 
   const isNewPrompt =

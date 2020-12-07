@@ -4,19 +4,16 @@ import { useCallback, forwardRef, useReducer, useContext } from 'react'
 import cn from 'classnames'
 import styled, { ThemeContext } from 'styled-components'
 import { themeGet } from '@styled-system/theme-get'
-import {
-  BirchFolder,
-  BirchItem,
-  PromptHandleRename,
-  PromptHandle
-} from '../models'
 
-import {
-  EnumBirchItemType,
-  EnumTreeItemType,
+import { EnumBirchItemType, EnumTreeItemType } from 'react-birch-types'
+
+import type {
+  IBirchFolder,
+  IBirchItem,
+  IPromptHandleRename,
   ITreeViewItemRendererProps
-} from '../types'
-
+} from 'react-birch-types'
+import { PromptHandle } from '../models'
 import { Icon } from './Icon'
 import { useDecorationsChild } from './BirchUseDecorations'
 import { usePromptsChild } from './BirchUsePrompts'
@@ -46,7 +43,7 @@ const WidgetStyle = styled<any>('a')`
     height: inherit;
     width: inherit;
     display: inline-block;
-    content: url('${props => props.icon}');
+    content: url('${(props) => props.icon}');
   }
 `
 
@@ -60,7 +57,7 @@ const TreeViewItemRowStyle = styled('div')`
   margin-left: 2px;
   padding-right: 2px;
   cursor: pointer;
-  padding-left: ${props => 16 * (props['data-depth'] - 1)}px;
+  padding-left: ${(props) => 16 * (props['data-depth'] - 1)}px;
   border-radius: ${themeGet('radii.1')}px;
   display: flex;
 
@@ -142,14 +139,9 @@ const TreeViewItemFileName = styled.span`
 `
 
 const useForceUpdate = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [, update] = useReducer(
-    (num: number): number => (num + 1) % 1_000_000,
-    0
-  )
+  const [, update] = useReducer((num: number): number => (num + 1) % 1000000, 0)
   return update as () => void
 }
-
 
 function useTheme() {
   return useContext(ThemeContext)
@@ -189,13 +181,13 @@ export const TreeViewItemStyled = forwardRef(
           itemType === EnumBirchItemType.BirchItem ||
           itemType === EnumBirchItemType.BirchFolder
         ) {
-          onClick(ev, item as BirchItem, itemType)
+          onClick(ev, item as IBirchItem, itemType)
         }
       },
       [item, itemType, onClick]
     )
 
-    if ((item as BirchItem).disposed) {
+    if ((item as IBirchItem).disposed) {
       return null
     }
 
@@ -204,34 +196,36 @@ export const TreeViewItemStyled = forwardRef(
      */
     const isDirExpanded =
       itemType === EnumBirchItemType.BirchFolder
-        ? (item as BirchFolder).expanded
+        ? (item as IBirchFolder).expanded
         : itemType === EnumBirchItemType.RenamePrompt &&
-          (item as PromptHandleRename).target.type === EnumTreeItemType.Folder
-        ? ((item as PromptHandleRename).target as BirchFolder).expanded
+          (item as IPromptHandleRename).target.type === EnumTreeItemType.Folder
+        ? ((item as IPromptHandleRename).target as IBirchFolder).expanded
         : false
 
     const itemOrFolder =
       itemType === EnumBirchItemType.BirchItem ||
       itemType === EnumBirchItemType.NewItemPrompt ||
       (itemType === EnumBirchItemType.RenamePrompt &&
-        (item as PromptHandleRename).target.constructor === BirchItem)
+        (item as IPromptHandleRename).target.type === EnumTreeItemType.Item)
         ? 'item'
         : 'folder'
 
     /**
      * Create right hand side icon array
      */
-    const icons = itemMenus.map(({ icon, command, handler }) => (
-      <WidgetStyle
-        key={command}
-        icon={theme.icons[icon]}
-        onClick={e => {
+    const icons = itemMenus.map(({ icon, command, handler }) => {
+      const onClick = React.useCallback(
+        (e) => {
           e.preventDefault()
           e.stopPropagation()
           handler(item)
-        }}
-      />
-    ))
+        },
+        [handler, item]
+      )
+      return (
+        <WidgetStyle key={command} icon={theme.icons[icon]} onClick={onClick} />
+      )
+    })
 
     /**
      * Render item row
@@ -242,7 +236,7 @@ export const TreeViewItemStyled = forwardRef(
         className={cn(decorations ? decorations.classlist : null)}
         data-depth={item.depth}
         onClick={handleClick}
-        title={!isPrompt ? (item as BirchItem).path : undefined}
+        title={!isPrompt ? (item as IBirchItem).path : undefined}
         {...props}
       >
         {itemOrFolder === 'folder' ? (
@@ -253,14 +247,14 @@ export const TreeViewItemStyled = forwardRef(
           {itemOrFolder === 'item' && (
             <Icon
               mx={1}
-              src={(item as BirchItem).iconPath || 'octicons/file'}
+              src={(item as IBirchItem).iconPath || 'octicons/file'}
             />
           )}
           <TreeViewItemFileName>
             {isPrompt && item instanceof PromptHandle ? (
               <item.ProxiedInput />
             ) : (
-              (item as BirchItem).label
+              (item as IBirchItem).label
             )}
           </TreeViewItemFileName>
         </TreeViewItemLabel>
@@ -269,3 +263,5 @@ export const TreeViewItemStyled = forwardRef(
     )
   }
 )
+
+export default TreeViewItemStyled

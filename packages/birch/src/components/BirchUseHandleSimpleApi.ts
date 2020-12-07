@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 
 import { observable } from 'mobx'
-import {
+import { EnumTreeViewEventType } from 'react-birch-types'
+
+import type {
   ITreeViewOptions,
-  EnumTreeViewEventType,
   IBirchContext,
   ITreeDataProvider,
   ITreeViewHandle,
@@ -12,34 +13,11 @@ import {
   ITreeViewExpansionEvent,
   ITreeViewSelectionChangeEvent,
   ITreeViewVisibilityChangeEvent
-} from '../types'
+} from 'react-birch-types'
 
 type Disposer = () => void
 
 export class TreeViewHandle<T> implements ITreeViewHandle<T> {
-  public static registerTreeDataProvider<T>(
-    viewId: string,
-    treeDataProvider: ITreeDataProvider<T>
-  ): Disposer {
-    return this.createTreeView(viewId, {
-      treeDataProvider,
-      contributes: {
-        contextMenus: [],
-        itemMenus: [],
-        keybindings: [],
-        titleMenus: []
-      },
-      rootPath: 'ROOT'
-    }).dispose
-  }
-
-  public static createTreeView<T>(
-    viewId: string,
-    options: ITreeViewOptions<T>
-  ): ITreeViewHandle<T> {
-    return new TreeViewHandle(viewId, options, () => undefined)
-  }
-
   protected disposers: (() => void)[] = []
 
   private viewId: string
@@ -63,6 +41,29 @@ export class TreeViewHandle<T> implements ITreeViewHandle<T> {
     this.dataProvider = options.treeDataProvider
     this.viewId = viewId
     this.disposers.push(disposer)
+  }
+
+  public static registerTreeDataProvider<T>(
+    viewId: string,
+    treeDataProvider: ITreeDataProvider<T>
+  ): Disposer {
+    return this.createTreeView(viewId, {
+      treeDataProvider,
+      contributes: {
+        contextMenus: [],
+        itemMenus: [],
+        keybindings: [],
+        titleMenus: []
+      },
+      rootPath: 'ROOT'
+    }).dispose
+  }
+
+  public static createTreeView<T>(
+    viewId: string,
+    options: ITreeViewOptions<T>
+  ): ITreeViewHandle<T> {
+    return new TreeViewHandle(viewId, options, () => undefined)
   }
 
   onDidExpandElement(handler: (event: ITreeViewExpansionEvent) => void) {
@@ -96,7 +97,7 @@ export class TreeViewHandle<T> implements ITreeViewHandle<T> {
 
   dispose(): void {
     this.events.clear()
-    this.disposers.forEach(d => d())
+    this.disposers.forEach((d) => d())
   }
 }
 
@@ -124,7 +125,7 @@ export const useHandleSimpleApi = (
     } = birchContextRef.current
 
     disposables.current.add(
-      treeViewHandleExtended.current.onDidChangeSelection(e => {
+      treeViewHandleExtended.current.onDidChangeSelection((e) => {
         treeViewHandleSimple.events!.emit(
           EnumTreeViewEventType.didChangeSelection,
           e ? { tid: e.tid, path: e.path } : { path: null }
@@ -149,7 +150,7 @@ export const useHandleSimpleApi = (
     )
 
     disposables.current.add(
-      model.root.onDidChangeTreeData(item => {
+      model.root.onDidChangeTreeData((item) => {
         item.forceUpdate()
         forceUpdate()
       })

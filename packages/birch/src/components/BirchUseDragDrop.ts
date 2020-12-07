@@ -2,17 +2,16 @@ import * as React from 'react'
 import { useMemo, useCallback, useContext, useEffect } from 'react'
 import { ThemeContext } from 'styled-components'
 import {
-  BirchItem,
-  BirchFolder,
+  EnumBirchItemType,
   EnumBirchWatchEvent,
-  BirchItemOrFolder,
-  PromptHandleNewItem,
-  PromptHandleRename
-} from '../models'
+  IBirchContext,
+  IBirchItem,
+  IBirchFolder,
+  IPromptHandleNewItem,
+  IPromptHandleRename
+} from 'react-birch-types'
 
 import { DragAndDropService } from '../services/dragAndDrop'
-
-import { EnumBirchItemType, IBirchContext } from '../types'
 
 function useTheme() {
   return useContext(ThemeContext)
@@ -32,7 +31,7 @@ export const useDragDropContainer = (
     )
 
     dragAndDropService.current.onDragAndDrop(
-      async (item: BirchItemOrFolder, newParent: BirchFolder) => {
+      async (item: IBirchItem | IBirchFolder, newParent: IBirchFolder) => {
         const {
           options: { treeDataProvider },
           activeSelection: { updateActiveItem, updatePseudoActiveItem },
@@ -55,9 +54,9 @@ export const useDragDropContainer = (
             oldPath: item.path,
             newPath
           })
-          updatePseudoActiveItem(null!)
-          updateActiveItem(item)
-          setDragged(dragged => !dragged)
+          void updatePseudoActiveItem(null!)
+          void updateActiveItem(item)
+          setDragged((dragged) => !dragged)
         } catch (error) {
           // handle as you see fit
         }
@@ -80,7 +79,7 @@ export const useDragDropChild = ({
   dragAndDropService
 }: {
   itemIdToRefMap: Map<number, HTMLDivElement>
-  item: BirchItem | BirchFolder | PromptHandleNewItem | PromptHandleRename
+  item: IBirchItem | IBirchFolder | IPromptHandleNewItem | IPromptHandleRename
   itemType: EnumBirchItemType
   dragAndDropService: DragAndDropService
 }) => {
@@ -118,7 +117,7 @@ export const useDragDropChild = ({
             label$.style.cursor = 'pointer'
           })
         }
-        dragAndDropService.handleDragStart(ev, item as BirchItem)
+        dragAndDropService.handleDragStart(ev, item as IBirchItem)
       }
     },
     [item, itemType, dragAndDropService]
@@ -130,7 +129,7 @@ export const useDragDropChild = ({
         itemType === EnumBirchItemType.BirchItem ||
         itemType === EnumBirchItemType.BirchFolder
       ) {
-        dragAndDropService.handleDragEnd(ev, item as BirchItem)
+        dragAndDropService.handleDragEnd(ev, item as IBirchItem)
       }
     },
     [item, itemType, dragAndDropService]
@@ -142,7 +141,7 @@ export const useDragDropChild = ({
         itemType === EnumBirchItemType.BirchItem ||
         itemType === EnumBirchItemType.BirchFolder
       ) {
-        dragAndDropService.handleDragEnter(ev, item as BirchItem)
+        dragAndDropService.handleDragEnter(ev, item as IBirchItem)
       }
     },
     [item, itemType, dragAndDropService]

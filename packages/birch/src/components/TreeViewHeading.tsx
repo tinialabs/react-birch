@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { space, fontFamily, color } from 'styled-system'
-import { ITreeViewExtendedHandle } from '../types'
+import type { ITreeViewExtendedHandle } from 'react-birch-types'
 
 const Flex = styled.div.attrs({})`
   display: flex;
@@ -39,7 +39,7 @@ const HeadingIcon = styled<any>('i')`
     height: inherit;
     width: inherit;
     display: inline-block;
-    content: ${props => props.icon};
+    content: ${(props) => props.icon};
   }
 `
 
@@ -70,15 +70,18 @@ export const TreeViewHeading: React.FC<TreeViewHeadingProps> = ({
   handle
 }) => {
   const icons = useMemo(() => {
-    return titleMenus.map(({ command, icon, handler }) => (
-      <HeadingIcon
-        key={command}
-        onClick={() => {
-          handler!(handle.current)
-        }}
-        icon={icon}
-      />
-    ))
+    return titleMenus.map(({ command, icon, handler }) => {
+      return (
+        <HeadingIcon
+          key={command}
+          // eslint-disable-next-line react/jsx-no-bind
+          onClick={() => {
+            handler!(handle.current)
+          }}
+          icon={icon}
+        />
+      )
+    })
   }, [titleMenus, id, handle.current && handle.current.id])
 
   return (

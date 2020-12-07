@@ -1,13 +1,9 @@
 import * as React from 'react'
-import { BirchItem, BirchFolder } from '../models'
-import {
-  ITreeViewExtendedHandle,
-  EnumTreeViewExtendedEvent,
-  EnumTreeItemType,
-  IBirchContext
-} from '../types'
+import { EnumTreeViewExtendedEvent, EnumTreeItemType } from 'react-birch-types'
+import type { IBirchItem, IBirchFolder, IBirchContext } from 'react-birch-types'
 
 export class KeyboardHotkeys {
+  // eslint-disable-next-line @typescript-eslint/typedef
   private hotkeyActions = {
     ArrowUp: () => this.jumpToPrevItem(),
     ArrowDown: () => this.jumpToNextItem(),
@@ -117,12 +113,12 @@ export class KeyboardHotkeys {
       currentPseudoActive &&
       currentPseudoActive.type === EnumTreeItemType.Folder
     ) {
-      if ((currentPseudoActive as BirchFolder).expanded) {
+      if ((currentPseudoActive as IBirchFolder).expanded) {
         this.jumpToNextItem()
         return
       }
-      this.birchContext.current.treeViewHandleExtended.current.openFolder(
-        currentPseudoActive as BirchFolder
+      void this.birchContext.current.treeViewHandleExtended.current.openFolder(
+        currentPseudoActive as IBirchFolder
       )
     }
   }
@@ -132,10 +128,10 @@ export class KeyboardHotkeys {
     if (currentPseudoActive) {
       if (
         currentPseudoActive.type === EnumTreeItemType.Folder &&
-        (currentPseudoActive as BirchFolder).expanded
+        (currentPseudoActive as IBirchFolder).expanded
       ) {
         this.birchContext.current.treeViewHandleExtended.current.closeFolder(
-          currentPseudoActive as BirchFolder
+          currentPseudoActive as IBirchFolder
         )
         return
       }
@@ -161,15 +157,15 @@ export class KeyboardHotkeys {
     }
     if (currentPseudoActive.type === EnumTreeItemType.Folder) {
       this.birchContext.current.treeViewHandleExtended.current.toggleFolder(
-        currentPseudoActive as BirchFolder
+        currentPseudoActive as IBirchFolder
       )
     } else if (currentPseudoActive.type === EnumTreeItemType.Item) {
       this.birchContext.current.treeViewHandleExtended.current.setActiveItem(
-        currentPseudoActive as BirchItem
+        currentPseudoActive as IBirchItem
       )
       this.birchContext.current.treeViewHandleExtended.current.events.emit(
         EnumTreeViewExtendedEvent.OnDidChangeSelection,
-        currentPseudoActive as BirchItem
+        currentPseudoActive as IBirchItem
       )
     }
   }
@@ -181,7 +177,7 @@ export class KeyboardHotkeys {
     }
     if (currentPseudoActive.type === EnumTreeItemType.Folder) {
       this.birchContext.current.treeViewHandleExtended.current.toggleFolder(
-        currentPseudoActive as BirchFolder
+        currentPseudoActive as IBirchFolder
       )
     }
   }
@@ -203,3 +199,5 @@ export class KeyboardHotkeys {
     )
   }
 }
+
+export default KeyboardHotkeys

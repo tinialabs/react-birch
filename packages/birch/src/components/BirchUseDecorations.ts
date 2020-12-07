@@ -1,7 +1,10 @@
 import { useRef, useEffect } from 'react'
 import { DisposablesComposite } from 'birch-event-emitter'
-import { ClasslistComposite } from '../models/decoration'
-import { TreeViewModel, IBirchContext } from '..'
+import {
+  IBirchContext,
+  ITreeViewModel,
+  IClasslistComposite
+} from 'react-birch-types'
 
 export const useDecorations = (
   birchContextRef: React.MutableRefObject<IBirchContext>
@@ -26,9 +29,9 @@ export const useDecorations = (
 
     disposables.current.add(
       treeViewHandleExtended.current.onDidChangeModel(
-        (prevModel: TreeViewModel, newModel: TreeViewModel) => {
-          updateActiveItem(null!)
-          updatePseudoActiveItem(null!)
+        (prevModel: ITreeViewModel, newModel: ITreeViewModel) => {
+          void updateActiveItem(null!)
+          void updatePseudoActiveItem(null!)
           prevModel.decorations.removeDecoration(activeItemDecoration)
           prevModel.decorations.removeDecoration(pseudoActiveItemDecoration)
           newModel.decorations.addDecoration(activeItemDecoration)
@@ -50,10 +53,10 @@ export const useDecorationsChild = ({
   decorations,
   forceUpdate
 }: {
-  decorations: ClasslistComposite
+  decorations: IClasslistComposite
   forceUpdate: () => void
 }) => {
-  const prevDecorations = useRef<ClasslistComposite>(undefined!)
+  const prevDecorations = useRef<IClasslistComposite>(undefined!)
 
   useEffect(() => {
     return () => {

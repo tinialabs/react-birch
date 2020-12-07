@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import { DisposablesComposite, IDisposable } from 'birch-event-emitter'
-import { BirchFolder, BirchItem, BirchRoot } from '..'
-import { EnumTreeItemType } from '../../types'
+import type { IBirchFolder, IBirchItem, IBirchRoot } from 'react-birch-types'
+import { EnumTreeItemType } from 'react-birch-types'
 import { Decoration } from './Decoration'
 import {
   ClasslistComposite,
@@ -36,17 +36,17 @@ export class DecorationsManager implements IDisposable {
   private decorations: Map<Decoration, IDisposable> = new Map()
 
   private decorationsMeta: WeakMap<
-    BirchItem | BirchFolder,
+    IBirchItem | IBirchFolder,
     IDecorationMeta
   > = new WeakMap()
 
   private disposables: DisposablesComposite = new DisposablesComposite()
 
-  private disposed = false
+  private disposed: boolean = false
 
-  constructor(root: BirchRoot, public readonly viewId: string) {
+  constructor(root: IBirchRoot, public readonly viewId: string) {
     // if the object is actually BirchRoot, but not of same version this condition will likely be true
-    if (!(root instanceof BirchRoot)) {
+    if (!(root.root === root)) {
       throw new TypeError('Unexpected object type. Expected `BirchRoot`. ')
     }
     // this will act as "seed" (base) for rest of the decorations to come
@@ -152,7 +152,7 @@ export class DecorationsManager implements IDisposable {
    *
    * Resolution includes taking inheritances into consideration, along with any negations that may void some or all of inheritances
    */
-  public getDecorations(item: BirchItem | BirchFolder): ClasslistComposite {
+  public getDecorations(item: IBirchItem | IBirchFolder): ClasslistComposite {
     if (
       !item ||
       (item.type !== EnumTreeItemType.Item &&
@@ -170,7 +170,7 @@ export class DecorationsManager implements IDisposable {
   /**
    * @internal
    */
-  public getDecorationData(item: BirchItem | BirchFolder): IDecorationMeta {
+  public getDecorationData(item: IBirchItem | IBirchFolder): IDecorationMeta {
     if (this.disposed) {
       return null
     }
@@ -208,7 +208,7 @@ export class DecorationsManager implements IDisposable {
 
   private targetDecoration = (
     decoration: Decoration,
-    target: BirchItem | BirchFolder
+    target: IBirchItem | IBirchFolder
   ): void => {
     const { applicable, inheritable } = this.getDecorationData(target)
 
@@ -221,7 +221,7 @@ export class DecorationsManager implements IDisposable {
 
   private unTargetDecoration = (
     decoration: Decoration,
-    target: BirchItem | BirchFolder
+    target: IBirchItem | IBirchFolder
   ): void => {
     const { applicable, inheritable } = this.getDecorationData(target)
 
@@ -234,7 +234,7 @@ export class DecorationsManager implements IDisposable {
 
   private negateDecoration = (
     decoration: Decoration,
-    target: BirchItem | BirchFolder
+    target: IBirchItem | IBirchFolder
   ): void => {
     const { applicable, inheritable } = this.getDecorationData(target)
 
@@ -247,7 +247,7 @@ export class DecorationsManager implements IDisposable {
 
   private unNegateDecoration = (
     decoration: Decoration,
-    target: BirchItem | BirchFolder
+    target: IBirchItem | IBirchFolder
   ): void => {
     const { applicable, inheritable } = this.getDecorationData(target)
 
@@ -259,9 +259,9 @@ export class DecorationsManager implements IDisposable {
   }
 
   private switchParent = (
-    target: BirchItem | BirchFolder,
-    prevParent: BirchFolder,
-    newParent: BirchFolder
+    target: IBirchItem | IBirchFolder,
+    prevParent: IBirchFolder,
+    newParent: IBirchFolder
   ): void => {
     const ownMeta = this.decorationsMeta.get(target)
     if (!ownMeta) {
@@ -274,3 +274,5 @@ export class DecorationsManager implements IDisposable {
     }
   }
 }
+
+export default DecorationsManager

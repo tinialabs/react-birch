@@ -47,10 +47,10 @@ export const ContextMenuProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    window.addEventListener('contextmenu', captureCtxMenuEvent, true)
+    addEventListener('contextmenu', captureCtxMenuEvent, true)
 
     return () => {
-      window.removeEventListener('contextmenu', captureCtxMenuEvent, true)
+      removeEventListener('contextmenu', captureCtxMenuEvent, true)
     }
   }, [])
 
@@ -123,7 +123,7 @@ export const ContextMenuProvider = ({ children }) => {
 
     emitter.current.on(EnumContextMenuEvent.Close, disposeHandle)
 
-    Promise.resolve(data).then(ctxMenuData => {
+    void Promise.resolve(data).then((ctxMenuData) => {
       validateData(ctxMenuData)
       pos.current =
         newpos && newpos.x > -1 && newpos.y > -1
@@ -143,12 +143,12 @@ export const ContextMenuProvider = ({ children }) => {
     })
 
     return {
-      onShow: cb => {
+      onShow: (cb) => {
         if (handleActive) {
           emitter.current.on(EnumContextMenuEvent.Show, cb)
         }
       },
-      onClose: cb => {
+      onClose: (cb) => {
         if (handleActive) {
           emitter.current.on(EnumContextMenuEvent.Close, cb)
         }
@@ -220,13 +220,13 @@ export const ContextMenu = (_props: IContextMenuProps) => {
         return
       }
       let groupHash = ``
-      const items = menuGroup.map(item => {
+      const items = menuGroup.map((item) => {
         if (!item) {
           return null
         }
         groupHash += item.label
         if ((item as ITextMenuItem).onClick) {
-          const onClick = _e => {
+          const onClick = (_e) => {
             if (!item.disabled) {
               ;(item as ITextMenuItem).onClick()
               hideContextMenu()
@@ -272,7 +272,7 @@ export const ContextMenu = (_props: IContextMenuProps) => {
       <StyledSubMenu>{menu}</StyledSubMenu>
     ) : (
       <StyledMenu
-        onMouseDown={e => {
+        onMouseDown={(e) => {
           isLastMouseDownOnMenu.current = true
           e.stopPropagation()
         }}
@@ -291,10 +291,10 @@ export const ContextMenu = (_props: IContextMenuProps) => {
 
     const rootMenuBox = rootMenu.getBoundingClientRect()
     let { x, y } = pos
-    if (y + rootMenuBox.height > window.innerHeight) {
+    if (y + rootMenuBox.height > innerHeight) {
       y -= rootMenuBox.height
     }
-    if (x + rootMenuBox.width > window.innerWidth) {
+    if (x + rootMenuBox.width > innerWidth) {
       x -= rootMenuBox.width
     }
     rootMenu.style.top = `${y}px`
@@ -321,11 +321,12 @@ export const ContextMenu = (_props: IContextMenuProps) => {
     submenuNode.style.left = `${parentMenuBox.width}px`
     const submenuBox = submenuNode.getBoundingClientRect()
     const { left, top } = submenuBox
-    if (top + submenuBox.height > window.innerHeight) {
-      submenuNode.style.marginTop = `${window.innerHeight -
-        (top + submenuBox.height)}px`
+    if (top + submenuBox.height > innerHeight) {
+      submenuNode.style.marginTop = `${
+        innerHeight - (top + submenuBox.height)
+      }px`
     }
-    if (left + submenuBox.width > window.innerWidth) {
+    if (left + submenuBox.width > innerWidth) {
       submenuNode.style.left = `${-parentMenuBox.width}px`
     }
     submenuNode.style.visibility = ``
@@ -343,7 +344,7 @@ export const ContextMenu = (_props: IContextMenuProps) => {
     if (!level) {
       return
     }
-    level.querySelectorAll('li.submenu-item.active').forEach(el => {
+    level.querySelectorAll('li.submenu-item.active').forEach((el) => {
       el.classList.remove('active')
       const submenuNode = el.querySelector('div.submenu') as HTMLDivElement
       submenuNode.style.display = 'none'
@@ -353,11 +354,11 @@ export const ContextMenu = (_props: IContextMenuProps) => {
   useEffect(() => {
     if (visible) {
       adjustContextMenuClippingAndShow()
-      window.addEventListener('mousedown', onMouseDownAnywhere)
+      addEventListener('mousedown', onMouseDownAnywhere)
     } else {
       rootContextMenu.current!.style.display = 'none'
       hideSubMenus(rootContextMenu.current!)
-      window.removeEventListener('mousedown', onMouseDownAnywhere)
+      removeEventListener('mousedown', onMouseDownAnywhere)
     }
   }, [visible])
 

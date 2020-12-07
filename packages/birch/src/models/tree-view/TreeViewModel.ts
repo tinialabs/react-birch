@@ -3,8 +3,14 @@ import {
   EventEmitter,
   DisposablesComposite
 } from 'birch-event-emitter'
-import { IBirchCoreHost, BirchFolder, BirchRoot } from '..'
-import { ITreeViewOptions } from '../../types'
+import type {
+  ITreeViewOptions,
+  IBirchCoreHost,
+  IBirchFolder,
+  IDecorationsManager,
+  IBirchRoot
+} from 'react-birch-types'
+import { BirchRoot } from '..'
 import { DecorationsManager } from '../decoration'
 
 enum TreeStateEvent {
@@ -16,19 +22,19 @@ enum TreeStateEvent {
 }
 
 export class TreeViewModel {
-  public readonly root: BirchRoot
+  public readonly root: IBirchRoot
 
-  public readonly decorations: DecorationsManager
+  public readonly decorations: IDecorationsManager
 
   private events: EventEmitter<TreeStateEvent> = new EventEmitter()
 
-  private expandedFolders: Map<BirchFolder, string> = new Map()
+  private expandedFolders: Map<IBirchFolder, string> = new Map()
 
-  private _scrollOffset = 0
+  private _scrollOffset: number = 0
 
   public readonly viewId: string
 
-  private disposables = new DisposablesComposite()
+  private disposables: DisposablesComposite = new DisposablesComposite()
 
   constructor({
     options,
@@ -107,7 +113,7 @@ export class TreeViewModel {
   }
 
   private handleExpansionChange = (
-    target: BirchFolder,
+    target: IBirchFolder,
     isExpanded: boolean,
     isVisibleAtSurface: boolean
   ) => {
@@ -133,7 +139,7 @@ export class TreeViewModel {
     }
   }
 
-  private handleDidChangePath = (target: BirchFolder) => {
+  private handleDidChangePath = (target: IBirchFolder) => {
     if (this.expandedFolders.has(target)) {
       const prevPath = this.expandedFolders.get(target)
       const newPath = this.root.pathfx.relative(this.root.path, target.path)
@@ -142,3 +148,5 @@ export class TreeViewModel {
     }
   }
 }
+
+export default TreeViewModel

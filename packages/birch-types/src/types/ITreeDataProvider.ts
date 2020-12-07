@@ -1,4 +1,5 @@
-import { ITreeItem, EnumTreeItemType } from '.'
+import { EnumTreeItemType } from '.'
+import type { ITreeItem } from '.'
 
 type Disposer = () => void
 

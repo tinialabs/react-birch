@@ -1,3 +1,5 @@
+export * from './birch'
+
 export * from './IBirchContext'
 
 export * from './IBirchTreeItemProps'
@@ -13,5 +15,3 @@ export * from './ITreeDataProvider'
 export * from './ITreeViewExtendedHandle'
 
 export * from './ITreeViewItemRendererProps'
-
-export * from '../components/BirchTreeView'

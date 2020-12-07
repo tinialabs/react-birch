@@ -1,7 +1,7 @@
-import { IDisposable, EventEmitter } from 'birch-event-emitter'
-import { Align } from 'react-window'
-import { TreeViewModel, BirchItem, BirchFolder } from '../models'
-import { ITreeItem } from './ITreeItem'
+import type { IDisposable, EventEmitter } from 'birch-event-emitter'
+import type { Align } from 'react-window'
+import { ITreeViewModel, IBirchItem, IBirchFolder } from '../models'
+import type { ITreeItem } from './ITreeItem'
 
 // Here imagination is your limit! ITreeViewExtendedHandle has core low-level features you can build on top of as your application needs
 export interface ITreeViewExtendedHandle {
@@ -10,7 +10,7 @@ export interface ITreeViewExtendedHandle {
   /**
    * Returns the current `TreeModel` this `ItemTree` is attached to
    */
-  getModel(): TreeViewModel
+  getModel(): ITreeViewModel
 
   /**
    * Opens/Expands a folder
@@ -18,19 +18,19 @@ export interface ITreeViewExtendedHandle {
    * BirchFolder remains expanded indefinitely, until closeFolder is called
    */
   openFolder(path: string): Promise<void>
-  openFolder(folder: BirchFolder): Promise<void>
+  openFolder(folder: IBirchFolder): Promise<void>
 
   /**
    * Closes/Collapses a folder if open
    */
   closeFolder(path: string): void
-  closeFolder(folder: BirchFolder): void
+  closeFolder(folder: IBirchFolder): void
 
   /**
    * Toggles Opens/Expands or Closes/Collapses a folder if open
    */
   toggleFolder(path: string): void
-  toggleFolder(folder: BirchFolder): void
+  toggleFolder(folder: IBirchFolder): void
 
   /**
    * Will make its way and scroll to the specified item or path.
@@ -40,8 +40,8 @@ export interface ITreeViewExtendedHandle {
    *
    */
   ensureVisible(path: string, align?: Align): Promise<void>
-  ensureVisible(itemEntry: BirchItem, align?: Align): Promise<void>
-  ensureVisible(folder: BirchFolder, align?: Align): Promise<void>
+  ensureVisible(itemEntry: IBirchItem, align?: Align): Promise<void>
+  ensureVisible(folder: IBirchFolder, align?: Align): Promise<void>
 
   /**
    * Returns handle to BirchItem at given path
@@ -52,43 +52,43 @@ export interface ITreeViewExtendedHandle {
   getItemHandle(
     path: string,
     expandTree?: boolean
-  ): Promise<BirchItem | BirchFolder>
+  ): Promise<IBirchItem | IBirchFolder>
 
   // EVENTS //
   onDidChangeModel(
-    callback: (prevModel: TreeViewModel, newModel: TreeViewModel) => void
+    callback: (prevModel: ITreeViewModel, newModel: ITreeViewModel) => void
   ): IDisposable
   onceDidChangeModel(
-    callback: (prevModel: TreeViewModel, newModel: TreeViewModel) => void
+    callback: (prevModel: ITreeViewModel, newModel: ITreeViewModel) => void
   ): IDisposable
 
   onDidUpdate(callback: () => void): IDisposable
   onceDidUpdate(callback: () => void): IDisposable
 
-  getActiveItem(): BirchItem | BirchFolder
+  getActiveItem(): IBirchItem | IBirchFolder
   setActiveItem(path: string)
-  setActiveItem(item: BirchItem)
-  setActiveItem(dir: BirchFolder)
+  setActiveItem(item: IBirchItem)
+  setActiveItem(dir: IBirchFolder)
 
-  getPseudoActiveItem(): BirchItem | BirchFolder
+  getPseudoActiveItem(): IBirchItem | IBirchFolder
   setPseudoActiveItem(path: string)
-  setPseudoActiveItem(item: BirchItem)
-  setPseudoActiveItem(dir: BirchFolder)
+  setPseudoActiveItem(item: IBirchItem)
+  setPseudoActiveItem(dir: IBirchFolder)
 
   rename(path: string)
-  rename(item: BirchItem)
-  rename(dir: BirchFolder)
+  rename(item: IBirchItem)
+  rename(dir: IBirchFolder)
 
   newItem(dirpath: string, iconPath?: string)
-  newItem(dir: BirchFolder, iconPath?: string)
+  newItem(dir: IBirchFolder, iconPath?: string)
   newFolder(dirpath: string)
-  newFolder(dir: BirchFolder)
+  newFolder(dir: IBirchFolder)
 
-  createdItem: (item: ITreeItem, parentDir: BirchFolder) => Promise<void>
+  createdItem: (item: ITreeItem, parentDir: IBirchFolder) => Promise<void>
 
   unlinkItem(dirpath: string)
-  unlinkItem(dir: BirchFolder)
-  unlinkItem(item: BirchItem)
+  unlinkItem(dir: IBirchFolder)
+  unlinkItem(item: IBirchItem)
 
   collapseAll(): void
 
@@ -103,7 +103,7 @@ export interface ITreeViewExtendedHandle {
   /**
    * Event that is fired when the [selection](#BirchTreeView.selection) has changed
    */
-  onDidChangeSelection(callback: (selection: BirchItem) => void): IDisposable
+  onDidChangeSelection(callback: (selection: IBirchItem) => void): IDisposable
 
   events: EventEmitter<EnumTreeViewExtendedEvent>
 }

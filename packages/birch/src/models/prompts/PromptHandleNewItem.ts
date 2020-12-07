@@ -1,13 +1,16 @@
-import { BirchFolder, BirchItem } from '..'
+import type { IBirchFolder } from 'react-birch-types'
+import { EnumTreeItemType, IPromptHandleNewItem } from 'react-birch-types'
+import { BirchItem } from '..'
 import { PromptHandle } from './PromptHandle'
-import { EnumTreeItemType } from '../../types'
 
-export class PromptHandleNewItem extends PromptHandle {
+export class PromptHandleNewItem
+  extends PromptHandle
+  implements IPromptHandleNewItem {
   private _birchId: number = BirchItem.nextId()
 
   constructor(
     public readonly type: EnumTreeItemType,
-    public readonly parent: BirchFolder,
+    public readonly parent: IBirchFolder,
     public readonly iconPath: string
   ) {
     super()
@@ -21,3 +24,5 @@ export class PromptHandleNewItem extends PromptHandle {
     return this.parent.depth + 1
   }
 }
+
+export default PromptHandleNewItem

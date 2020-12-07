@@ -1,7 +1,12 @@
 import { EventEmitter } from 'birch-event-emitter'
-import { BirchItem, BirchFolder, TreeViewModel } from '../models'
-import { EnumTreeItemType } from '../types'
-import { Decoration, DecorationTargetMatchMode } from '../models/decoration'
+import type {
+  IBirchItem,
+  IBirchFolder,
+  IDecoration,
+  ITreeViewModel
+} from 'react-birch-types'
+import { EnumTreeItemType } from 'react-birch-types'
+import { Decoration, EnumDecorationTargetMatchMode } from '../models/decoration'
 
 enum DnDServiceEvent {
   FinishDnD
@@ -10,25 +15,25 @@ enum DnDServiceEvent {
 const MS_TILL_DRAGGED_OVER_EXPANDS = 500
 
 export class DragAndDropService {
-  private model: TreeViewModel
+  private model: ITreeViewModel
 
   private events: EventEmitter<DnDServiceEvent> = new EventEmitter()
 
   private wasBeingDraggedExpanded: boolean
 
-  private beingDraggedItem: BirchItem | BirchFolder
+  private beingDraggedItem: IBirchItem | IBirchFolder
 
-  private draggedOverItem: BirchItem | BirchFolder
+  private draggedOverItem: IBirchItem | IBirchFolder
 
-  private potentialParent: BirchFolder
+  private potentialParent: IBirchFolder
 
   private expandDraggedOverFolderTimeout: number
 
-  private beingDraggedDecoration: Decoration = new Decoration('dragging')
+  private beingDraggedDecoration: IDecoration = new Decoration('dragging')
 
-  private draggedOverDecoration: Decoration = new Decoration('dragover')
+  private draggedOverDecoration: IDecoration = new Decoration('dragover')
 
-  constructor(model: TreeViewModel) {
+  constructor(model: ITreeViewModel) {
     this.setModel(model)
   }
 
@@ -39,12 +44,12 @@ export class DragAndDropService {
   }
 
   public onDragAndDrop(
-    cb: (target: BirchItem | BirchFolder, to: BirchFolder) => void
+    cb: (target: IBirchItem | IBirchFolder, to: IBirchFolder) => void
   ) {
     this.events.on(DnDServiceEvent.FinishDnD, cb)
   }
 
-  public setModel(model: TreeViewModel) {
+  public setModel(model: ITreeViewModel) {
     if (this.model) {
       this.model.decorations.removeDecoration(this.beingDraggedDecoration)
       this.model.decorations.removeDecoration(this.draggedOverDecoration)
@@ -56,27 +61,27 @@ export class DragAndDropService {
 
   public handleDragStart = (
     ev: React.DragEvent,
-    item: BirchItem | BirchFolder
+    item: IBirchItem | IBirchFolder
   ) => {
     this.beingDraggedItem = item
     const isDirAndExpanded =
-      item.type === EnumTreeItemType.Folder && (item as BirchFolder).expanded
+      item.type === EnumTreeItemType.Folder && (item as IBirchFolder).expanded
     this.wasBeingDraggedExpanded = isDirAndExpanded
     if (isDirAndExpanded) {
-      ;(item as BirchFolder).setCollapsed()
+      ;(item as IBirchFolder).setCollapsed()
     }
     this.beingDraggedDecoration.addTarget(
       item as any,
-      DecorationTargetMatchMode.Self
+      EnumDecorationTargetMatchMode.Self
     )
   }
 
   public handleDragEnd = (
     ev: React.DragEvent,
-    item: BirchItem | BirchFolder
+    item: IBirchItem | IBirchFolder
   ) => {
     if (this.wasBeingDraggedExpanded && item.type === EnumTreeItemType.Folder) {
-      ;(item as BirchFolder).setExpanded()
+      void (item as IBirchFolder).setExpanded()
     }
     this.wasBeingDraggedExpanded = false
     this.beingDraggedDecoration.removeTarget(item)
@@ -90,7 +95,7 @@ export class DragAndDropService {
 
   public handleDragEnter = (
     ev: React.DragEvent,
-    item: BirchItem | BirchFolder
+    item: IBirchItem | IBirchFolder
   ) => {
     if (this.expandDraggedOverFolderTimeout) {
       clearTimeout(this.expandDraggedOverFolderTimeout)
@@ -99,9 +104,9 @@ export class DragAndDropService {
     if (item === this.beingDraggedItem) {
       return
     }
-    const newPotentialParent: BirchFolder =
-      item.type === EnumTreeItemType.Folder && (item as BirchFolder).expanded
-        ? (item as BirchFolder)
+    const newPotentialParent: IBirchFolder =
+      item.type === EnumTreeItemType.Folder && (item as IBirchFolder).expanded
+        ? (item as IBirchFolder)
         : item.parent
 
     if (
@@ -112,7 +117,7 @@ export class DragAndDropService {
       this.potentialParent = newPotentialParent
       this.draggedOverDecoration.addTarget(
         this.potentialParent,
-        DecorationTargetMatchMode.SelfAndChildren
+        EnumDecorationTargetMatchMode.SelfAndChildren
       )
     }
 
@@ -122,14 +127,14 @@ export class DragAndDropService {
     ) {
       this.expandDraggedOverFolderTimeout = setTimeout(async () => {
         this.expandDraggedOverFolderTimeout = null!
-        await this.model.root.expandFolder(item as BirchFolder)
+        await this.model.root.expandFolder(item as IBirchFolder)
         // make sure it's still the same thing
         if (this.draggedOverItem === item) {
           this.draggedOverDecoration.removeTarget(this.potentialParent)
-          this.potentialParent = item as BirchFolder
+          this.potentialParent = item as IBirchFolder
           this.draggedOverDecoration.addTarget(
             this.potentialParent,
-            DecorationTargetMatchMode.SelfAndChildren
+            EnumDecorationTargetMatchMode.SelfAndChildren
           )
         }
       }, MS_TILL_DRAGGED_OVER_EXPANDS) as any
@@ -140,7 +145,7 @@ export class DragAndDropService {
     ev.preventDefault()
     const item = this.beingDraggedItem
     if (this.wasBeingDraggedExpanded && item.type === EnumTreeItemType.Folder) {
-      ;(item as BirchFolder).setExpanded()
+      void (item as IBirchFolder).setExpanded()
     }
     this.wasBeingDraggedExpanded = false
     this.beingDraggedDecoration.removeTarget(item)
@@ -163,3 +168,5 @@ export class DragAndDropService {
     ev.preventDefault()
   }
 }
+
+export default DragAndDropService

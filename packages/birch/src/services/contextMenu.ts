@@ -2,8 +2,11 @@ import {
   useContextMenu as UseContextMenuBase,
   IPosition
 } from 'birch-context-menu'
-import { BirchItem, BirchFolder } from '../models'
-import { ITreeViewExtendedHandle } from '../types'
+import type {
+  IBirchItem,
+  IBirchFolder,
+  ITreeViewExtendedHandle
+} from 'react-birch-types'
 
 export function useContextMenu() {
   const { showContextMenu } = UseContextMenuBase()
@@ -20,7 +23,7 @@ export function useContextMenu() {
         handler?: (view: ITreeViewExtendedHandle, item: any) => void
       }[],
       treeViewHandleExtended: ITreeViewExtendedHandle,
-      item: BirchItem | BirchFolder,
+      item: IBirchItem | IBirchFolder,
       pos?: IPosition
     ) => {
       if (pos) {
@@ -28,8 +31,8 @@ export function useContextMenu() {
       }
 
       const menusByGroup = contextMenus
-        .filter(m => (m.when ? m.when(item) : true))
-        .map(m => ({
+        .filter((m) => (m.when ? m.when(item) : true))
+        .map((m) => ({
           label: m.title,
           group: m.group,
           onClick: m.handler!.bind(null, treeViewHandleExtended, item)
@@ -39,7 +42,7 @@ export function useContextMenu() {
           return rv
         }, {})
 
-      const menus = Object.keys(menusByGroup).map(k => menusByGroup[k])
+      const menus = Object.keys(menusByGroup).map((k) => menusByGroup[k])
 
       if (menus.length > 0) {
         showContextMenu(menus as any, pos)
@@ -49,3 +52,5 @@ export function useContextMenu() {
     }
   ]
 }
+
+export default useContextMenu

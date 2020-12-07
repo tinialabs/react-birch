@@ -1,8 +1,8 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { themeGet } from '@styled-system/theme-get'
+import type { ITreeViewExtendedHandle, ITreeViewProps } from 'react-birch-types'
 import { TreeViewHeading, TreeViewHeadingIcons } from './TreeViewHeading'
-import { ITreeViewExtendedHandle, ITreeViewProps } from '../types'
 import { BirchTreeView } from './BirchTreeView'
 
 const HeadingContainer = styled.div`
@@ -66,3 +66,5 @@ export const TreeView: React.FC<ITreeViewProps> = ({ children, ...props }) => {
     </HeadingContainer>
   )
 }
+
+export default TreeView

@@ -2,17 +2,14 @@ import * as React from 'react'
 import { useCallback, memo, useReducer } from 'react'
 
 import {
-  BirchFolder,
-  BirchItem,
-  PromptHandleNewItem,
-  PromptHandleRename
-} from '../models'
-
-import {
+  IBirchFolder,
+  IBirchItem,
   EnumBirchItemType,
   ITreeViewItemRendererProps,
-  IBirchContext
-} from '../types'
+  IBirchContext,
+  IPromptHandleNewItem,
+  IPromptHandleRename
+} from 'react-birch-types'
 
 import { useDragDropChild } from './BirchUseDragDrop'
 import { useContextMenuChild } from './BirchUseContextMenu'
@@ -30,7 +27,6 @@ export const renderBirchTreeViewItem = (
     }
   } = birchContextRef.current
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const renderItem = useCallback(
     ({ index, style }): JSX.Element => {
       const { item, itemType: type } = getItemAtIndex(index)
@@ -43,13 +39,14 @@ export const renderBirchTreeViewItem = (
           itemType={type}
           depth={item.depth}
           birchContextRef={birchContextRef}
-          children={children}
           expanded={
             type === EnumBirchItemType.BirchFolder
-              ? (item as BirchFolder).expanded
+              ? (item as IBirchFolder).expanded
               : false
           }
-        />
+        >
+          {children}
+        </BirchTreeViewItem>
       )
     },
     [getItemAtIndex, itemMenus, activeItem, pseudoActiveItem, dragged]
@@ -59,7 +56,7 @@ export const renderBirchTreeViewItem = (
 }
 
 interface BirchTreeViewItemProps {
-  item: BirchItem | BirchFolder | PromptHandleNewItem | PromptHandleRename
+  item: IBirchItem | IBirchFolder | IPromptHandleNewItem | IPromptHandleRename
   itemType: EnumBirchItemType
   depth: number
   expanded: boolean
@@ -69,11 +66,7 @@ interface BirchTreeViewItemProps {
 }
 
 const useForceUpdate = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [, update] = useReducer(
-    (num: number): number => (num + 1) % 1_000_000,
-    0
-  )
+  const [, update] = useReducer((num: number): number => (num + 1) % 1000000, 0)
   return update as () => void
 }
 
@@ -92,7 +85,7 @@ const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {
       contributes: { itemMenus }
     }
   } = birchContextRef.current
-  ;(item as BirchItem).forceUpdate = useForceUpdate()
+  ;(item as IBirchItem).forceUpdate = useForceUpdate()
 
   const divRef = useCallback(
     (r: HTMLDivElement) => {
@@ -119,15 +112,15 @@ const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {
   })
 
   React.useEffect(() => {
-    const thisItem: BirchItem =
+    const thisItem: IBirchItem =
       props.itemType === EnumBirchItemType.BirchItem ||
       props.itemType === EnumBirchItemType.BirchFolder
-        ? (props.item as BirchItem)
+        ? (props.item as IBirchItem)
         : props.itemType === EnumBirchItemType.RenamePrompt
-        ? (props.item as PromptHandleRename).target
+        ? (props.item as IPromptHandleRename).target
         : props.itemType === EnumBirchItemType.NewItemPrompt ||
           props.itemType === EnumBirchItemType.NewFolderPrompt
-        ? (props.item as PromptHandleNewItem).parent
+        ? (props.item as IPromptHandleNewItem).parent
         : null!
 
     if (thisItem && thisItem.path) {
@@ -149,3 +142,5 @@ const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {
     ...(dragProps as any)
   })
 })
+
+export default renderBirchTreeViewItem

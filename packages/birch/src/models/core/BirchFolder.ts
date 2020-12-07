@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { BirchItem } from './BirchItem'
-import { BirchRoot } from './BirchRoot'
-import {
+import type {
+  BirchWatchTerminatorType,
   IBirchWatcherEvent,
-  EnumBirchWatchEvent,
-  BirchWatchTerminator,
-  IBirchTreeSupervisor
-} from '../../types/birch'
-import { EnumTreeItemType, ITreeItem } from '../../types'
+  IBirchTreeSupervisor,
+  ITreeItem,
+  IBirchFolder,
+  IBirchItem,
+  IBirchRoot
+} from 'react-birch-types'
+import { EnumBirchWatchEvent, EnumTreeItemType } from 'react-birch-types'
+import { BirchItem } from './BirchItem'
 
 /**
  * Like Array.prototype.splice except this method won't throw
@@ -25,7 +27,7 @@ import { EnumTreeItemType, ITreeItem } from '../../types'
 function spliceTypedArray(
   arr: Uint32Array,
   start: number,
-  deleteCount = 0,
+  deleteCount: number = 0,
   items?: Uint32Array
 ) {
   const a = new Uint32Array(
@@ -42,22 +44,8 @@ function spliceTypedArray(
   return a
 }
 
-export class BirchFolder extends BirchItem implements ITreeItem {
-  private static defaultSortComparator(
-    a: BirchItem | BirchFolder,
-    b: BirchItem | BirchFolder
-  ) {
-    if (a.constructor === b.constructor) {
-      return a.label > b.label ? 1 : a.label < b.label ? -1 : 0
-    }
-    return a.constructor === BirchFolder
-      ? -1
-      : b.constructor === BirchFolder
-      ? 1
-      : 0
-  }
-
-  protected _children: Array<BirchFolder | BirchItem>
+export class BirchFolder extends BirchItem implements ITreeItem, IBirchItem {
+  protected _children: Array<IBirchFolder | IBirchItem>
 
   /**
    * BirchFolder.children.length of self and all leafs (recursive) with isExpanded = true
@@ -68,14 +56,14 @@ export class BirchFolder extends BirchItem implements ITreeItem {
 
   private isExpanded: boolean
 
-  private watchTerminator: BirchWatchTerminator
+  private watchTerminator: BirchWatchTerminatorType
 
   private hardReloadPromise: Promise<void>
 
   private hardReloadPResolver: () => void
 
   protected constructor(
-    root: BirchRoot,
+    root: IBirchRoot,
     tree: IBirchTreeSupervisor,
     parent: BirchFolder,
     folderName: string,
@@ -87,7 +75,21 @@ export class BirchFolder extends BirchItem implements ITreeItem {
     this._children = null!
   }
 
-  get type(): EnumTreeItemType {
+  private static defaultSortComparator(
+    a: IBirchItem | IBirchFolder,
+    b: IBirchItem | IBirchFolder
+  ) {
+    if (a.constructor === b.constructor) {
+      return a.label > b.label ? 1 : a.label < b.label ? -1 : 0
+    }
+    return a.constructor === BirchFolder
+      ? -1
+      : b.constructor === BirchFolder
+      ? 1
+      : 0
+  }
+
+  get type(): EnumTreeItemType.Folder {
     return EnumTreeItemType.Folder
   }
 
@@ -126,7 +128,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
     await this.hardReloadChildren()
   }
 
-  public async setExpanded(ensureVisible = true) {
+  public async setExpanded(ensureVisible: boolean = true) {
     if (this.isExpanded) {
       return
     }
@@ -174,7 +176,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
    *
    * Prefer using `BirchRoot#dispatch` instead
    */
-  public insertItem(item: BirchItem | BirchFolder) {
+  public insertItem(item: IBirchItem | IBirchFolder) {
     if (item.parent !== this) {
       item.mv(this, item.label)
       return
@@ -183,7 +185,10 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       return
     }
     const branchSizeIncrease =
-      1 + (item instanceof BirchFolder && item.expanded ? item._branchSize : 0)
+      1 +
+      (item instanceof BirchFolder && item.expanded
+        ? (item as BirchFolder)._branchSize
+        : 0)
     this._children.push(item)
     this._children.sort(
       (this.root.host.sortComparator as any) ||
@@ -193,12 +198,14 @@ export class BirchFolder extends BirchItem implements ITreeItem {
     let master: BirchFolder = this
     while (!master.flattenedBranch) {
       if (master.parent) {
-        master = master.parent
+        master = master.parent as BirchFolder
         master._branchSize += branchSizeIncrease
       }
     }
     let relativeInsertionIndex = this._children.indexOf(item)
-    const leadingSibling = this._children[relativeInsertionIndex - 1]
+    const leadingSibling: BirchFolder | BirchItem = this._children[
+      relativeInsertionIndex - 1
+    ] as BirchFolder | BirchItem
     if (leadingSibling) {
       const siblingIdx = master.flattenedBranch.indexOf(leadingSibling.birchId)
       relativeInsertionIndex =
@@ -231,7 +238,10 @@ export class BirchFolder extends BirchItem implements ITreeItem {
    *
    * Prefer using `BirchRoot#dispatch` instead
    */
-  public unlinkItem(item: BirchItem | BirchFolder, reparenting = false): void {
+  public unlinkItem(
+    item: IBirchItem | IBirchFolder,
+    reparenting: boolean = false
+  ): void {
     const idx = this._children.indexOf(item)
     if (idx === -1) {
       return
@@ -244,7 +254,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
     let master: BirchFolder = this
     while (!master.flattenedBranch) {
       if (master.parent) {
-        master = master.parent
+        master = master.parent as BirchFolder
         master._branchSize -= branchSizeDecrease
       }
     }
@@ -309,7 +319,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       this.watchTerminator(this.path)
     }
     if (this._children) {
-      this._children.forEach(child => (child as BirchFolder).dispose())
+      this._children.forEach((child) => (child as BirchFolder).dispose())
     }
     super.dispose()
   }
@@ -339,7 +349,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       // [CRITICAL] take "away" the branch ownership
       branch.setFlattenedBranch(null!)
     } else if (this.parent) {
-      this.parent.expandBranch(branch)
+      ;(this.parent as BirchFolder).expandBranch(branch)
     }
   }
 
@@ -365,7 +375,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
         )
       )
     } else if (this.parent) {
-      this.parent.shrinkBranch(branch)
+      ;(this.parent as BirchFolder).shrinkBranch(branch)
     }
   }
 
@@ -374,10 +384,10 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       await this.hardReloadPromise
       return
     }
-    this.hardReloadPromise = new Promise(res => {
-      this.hardReloadPResolver = res
+    this.hardReloadPromise = new Promise((resolve) => {
+      this.hardReloadPResolver = resolve
     })
-    this.hardReloadPromise.then(() => {
+    void this.hardReloadPromise.then(() => {
       this.hardReloadPromise = null!
       this.hardReloadPResolver = null!
     })
@@ -388,7 +398,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
         tid: this._details.tid
       })) || []
     const rawItems = await Promise.all(
-      rawItemsPre.map(raw => this.root.host.getTreeItem(raw))
+      rawItemsPre.map((raw) => this.root.host.getTreeItem(raw))
     )
 
     if (this._children) {
@@ -405,7 +415,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       ) {
         BirchItem.checkRawItem(rawTreeItem)
       }
-      const { type, label, tid } = rawTreeItem
+      const { type, label } = rawTreeItem as any
       const child = new (type === EnumTreeItemType.Folder
         ? BirchFolder
         : BirchItem)(
@@ -444,7 +454,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
    *
    * This method, unlike `BirchRoot#forceLoadItemEntryAtPath`, WILL NOT, force load anything (synchronous for that reason)
    */
-  public findItemEntryInLoadedTreeById(tid: string): BirchItem | BirchFolder {
+  public findItemEntryInLoadedTreeById(tid: string): IBirchItem | IBirchFolder {
     const next = this._children
 
     const arrayLength = next.length
@@ -456,7 +466,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       }
 
       if (item.type === EnumTreeItemType.Folder) {
-        if ((item as BirchRoot)._children) {
+        if ((item as BirchFolder)._children) {
           const result = (item as BirchFolder).findItemEntryInLoadedTreeById(
             tid
           )
@@ -494,7 +504,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
         })
 
         if (target.type === EnumTreeItemType.Folder) {
-          ;(target as BirchFolder).didChangeItem()
+          void (target as BirchFolder).didChangeItem()
         }
 
         this._superv.notifyDidChangeTreeData(target)
@@ -537,7 +547,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       const folderName = this.root.pathfx.dirname(path)
       const label = this.root.pathfx.basename(path)
       if (folderName === this.path) {
-        const item = this._children.find(c => c.label === label)
+        const item = this._children.find((c) => c.label === label)
         if (item) {
           this.unlinkItem(item)
         }
@@ -547,7 +557,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       for (let i = 0; i < this._children.length; i++) {
         ;(this._children[i] as BirchFolder).dispose()
       }
-      this.hardReloadChildren()
+      void this.hardReloadChildren()
     }
     this._superv.notifyDidProcessWatchEvent(this, event)
   }
@@ -559,7 +569,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       ;(this._children[i] as BirchFolder).dispose()
     }
 
-    this.hardReloadChildren()
+    void this.hardReloadChildren()
   }
 
   private transferItem(oldPath: string, newPath: string) {
@@ -569,7 +579,7 @@ export class BirchFolder extends BirchItem implements ITreeItem {
       return
     }
     const label = basename(oldPath)
-    const item = this._children.find(c => c.label === label)
+    const item = this._children.find((c) => c.label === label)
     if (!item) {
       return
     }
@@ -582,3 +592,5 @@ export class BirchFolder extends BirchItem implements ITreeItem {
     item.mv(destDir, basename(newPath))
   }
 }
+
+export default BirchFolder

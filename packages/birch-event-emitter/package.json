@@ -1,8 +1,10 @@
 {
   "name": "birch-event-emitter",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Simple Event Emitter",
   "main": "dist/index.js",
+  "ts:main": "src/index.ts",
+  "types": "src/index.ts",
   "author": "Tinia Labs",
   "bugs": {
     "url": "https://github.com/tinialabs/react-birch#issues"
@@ -26,6 +28,5 @@
   "scripts": {
     "build": "tsc",
     "lint": "berun-dev lint"
-  },
-  "typings": "dist/index.d.ts"
+  }
 }

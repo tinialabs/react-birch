@@ -3,12 +3,13 @@ import {
   IDisposable,
   EventEmitter
 } from 'birch-event-emitter'
+import { IPromptHandle } from 'react-birch-types'
 import {
   bindInputElement,
   BirchTreeViewItemPromptProps
 } from '../../components/BirchTreeViewItemPrompt'
 
-const delay = ms => new Promise(res => setTimeout(res, ms))
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const isProduction = !(
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
 )
@@ -27,7 +28,7 @@ enum PromptEvent {
  * Since we're using react-window, typical React input elements would get destroyed once user scrolls quite far up/down
  * But the input's state MUST BE PRESERVED (example: value, undo/redo history) we do this by managing a "manual" HTMLInputElement outside of React
  */
-export abstract class PromptHandle {
+export abstract class PromptHandle implements IPromptHandle {
   public readonly $: HTMLInputElement
 
   public readonly ProxiedInput: (
@@ -38,9 +39,9 @@ export abstract class PromptHandle {
 
   private disposables: DisposablesComposite = new DisposablesComposite()
 
-  private isInPendingCommitState = false
+  private isInPendingCommitState: boolean = false
 
-  private _destroyed = false
+  private _destroyed: boolean = false
 
   constructor() {
     this.$ = document.createElement('input')
@@ -53,7 +54,7 @@ export abstract class PromptHandle {
     this.$.addEventListener('blur', this.handleBlur)
 
     if (!isProduction) {
-      delay(2000).then(() => {
+      void delay(2000).then(() => {
         if (!this._destroyed && !this.$.isConnected) {
           console.error(
             `PromptHandle created but never used. A potential memory leak vector.`
@@ -133,7 +134,7 @@ export abstract class PromptHandle {
     this.disposables.dispose()
 
     if (!isProduction) {
-      delay(1000).then(() => {
+      void delay(1000).then(() => {
         if (this.$.isConnected) {
           console.error(
             `[INTERNAL] A PromptHandle associated HTMLInputElement, which is now obsolete, is still mounted in the DOM. PromptHandles are useless once destroyed.`
@@ -143,15 +144,15 @@ export abstract class PromptHandle {
     }
   }
 
-  private handleClick = ev => {
+  private handleClick = (ev) => {
     ev.stopPropagation()
   }
 
-  private handleKeyup = ev => {
+  private handleKeyup = (ev) => {
     this.events.emit(PromptEvent.Change, this.$.value)
   }
 
-  private handleKeydown = async ev => {
+  private handleKeydown = async (ev) => {
     if (ev.key === 'Escape') {
       if (
         (
@@ -161,7 +162,7 @@ export abstract class PromptHandle {
               this.$.value
             )
           )
-        ).some(r => r === false)
+        ).some((r) => r === false)
       ) {
         return
       }
@@ -179,7 +180,7 @@ export abstract class PromptHandle {
               this.$.value
             )
           )
-        ).some(r => r === false)
+        ).some((r) => r === false)
       ) {
         this.isInPendingCommitState = false
         this.$.disabled = false
@@ -196,7 +197,7 @@ export abstract class PromptHandle {
     this.events.emit(PromptEvent.Focus, this.$.value)
   }
 
-  private handleBlur = async ev => {
+  private handleBlur = async (ev) => {
     await delay(0) // CRITICAL: If `input` was "unmounted" due to `react-virtualized`, the `isConnecteed` property isn't updated until after next tick
 
     // If input isn't in the DOM but also not "manually" destroyed, that just means `react-virtualized` had it "unmount" due to it not being in the viewport
@@ -208,7 +209,7 @@ export abstract class PromptHandle {
         await Promise.all(
           this.events.emitWithReturn<boolean>(PromptEvent.Blur, this.$.value)
         )
-      ).some(r => r === false)
+      ).some((r) => r === false)
     ) {
       return
     }
@@ -218,3 +219,5 @@ export abstract class PromptHandle {
     }
   }
 }
+
+export default PromptHandle

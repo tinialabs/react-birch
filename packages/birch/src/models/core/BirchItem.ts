@@ -1,13 +1,60 @@
-import { BirchFolder } from './BirchFolder'
-import { BirchRoot } from './BirchRoot'
-import { IBirchTreeSupervisor } from '../../types/birch'
-import { EnumTreeItemType, ITreeItem } from '../../types'
+import type {
+  IBirchTreeSupervisor,
+  IBirchItem,
+  IBirchRoot,
+  IBirchFolder,
+  ITreeItem
+} from 'react-birch-types'
+import { EnumTreeItemType } from 'react-birch-types'
 
-export class BirchItem implements ITreeItem {
-  public static nextId = (() => {
+export class BirchItem implements IBirchItem, ITreeItem {
+  private static idToItemEntry: Map<number, BirchItem> = new Map()
+
+  protected _birchId: number
+
+  protected _depth: number
+
+  protected _label: string
+
+  protected _details: ITreeItem
+
+  protected _superv: IBirchTreeSupervisor
+
+  private _root: IBirchRoot
+
+  protected _parent: IBirchFolder
+
+  private _disposed: boolean
+
+  private resolvedPathCache: string
+
+  public forceUpdate: (resolver?: any) => void
+
+  public static nextId: () => number = (() => {
     let globalBirchId = 0
     return () => globalBirchId++
   })()
+
+  protected constructor(
+    root: IBirchRoot,
+    tree: IBirchTreeSupervisor,
+    parent: IBirchFolder,
+    label: string,
+    details: ITreeItem
+  ) {
+    this._birchId = BirchItem.nextId()
+    this._root = root || (this as any) // 'this' IS BirchRoot
+    this._parent = parent
+    this._superv = tree
+    this._disposed = false
+    this._depth = parent ? parent.depth + 1 : 0
+    if (parent && typeof label === 'string') {
+      label = root.pathfx.basename(label)
+      this._label = label
+    }
+    this._details = details
+    BirchItem.idToItemEntry.set(this._birchId, this)
+  }
 
   public static checkRawItem(rawItem: ITreeItem) {
     if (rawItem === null || typeof rawItem !== 'object') {
@@ -32,49 +79,6 @@ export class BirchItem implements ITreeItem {
 
   public static getItemEntryById(birchId: number) {
     return BirchItem.idToItemEntry.get(birchId)
-  }
-
-  private static idToItemEntry: Map<number, BirchItem> = new Map()
-
-  protected _birchId: number
-
-  protected _depth: number
-
-  protected _label: string
-
-  protected _details: ITreeItem
-
-  protected _superv: IBirchTreeSupervisor
-
-  private _root: BirchRoot
-
-  private _parent: BirchFolder
-
-  private _disposed: boolean
-
-  private resolvedPathCache: string
-
-  public forceUpdate: (resolver?: any) => void
-
-  protected constructor(
-    root: BirchRoot,
-    tree: IBirchTreeSupervisor,
-    parent: BirchFolder,
-    label: string,
-    details: ITreeItem
-  ) {
-    this._birchId = BirchItem.nextId()
-    this._root = root || ((this as any) as BirchRoot) // 'this' IS BirchRoot
-    this._parent = parent
-    this._superv = tree
-    this._disposed = false
-    this._depth = parent ? parent.depth + 1 : 0
-    if (parent && typeof label === 'string') {
-      label = root.pathfx.basename(label)
-      this._label = label
-    }
-    this._details = details
-    BirchItem.idToItemEntry.set(this._birchId, this)
   }
 
   get type(): EnumTreeItemType {
@@ -145,7 +149,7 @@ export class BirchItem implements ITreeItem {
    *
    * Prefer using `BirchRoot#dispatch` instead
    */
-  public mv(to: BirchFolder, fname: string = this.label) {
+  public mv(to: IBirchFolder, fname: string = this.label) {
     const prevParent = this._parent
     if (to === null || to.type !== EnumTreeItemType.Folder) {
       this._parent = null!
@@ -157,7 +161,7 @@ export class BirchItem implements ITreeItem {
     const prevPath = this.path
 
     this.resolvedPathCache = null!
-    this._depth = to._depth + 1
+    this._depth = to.depth + 1
 
     if (
       didChangeParent ||
@@ -195,3 +199,5 @@ export class BirchItem implements ITreeItem {
     this._superv.notifyDidDispose(this)
   }
 }
+
+export default BirchItem

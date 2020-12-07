@@ -2,18 +2,17 @@ import { useEffect, useRef } from 'react'
 import { Align } from 'react-window'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 import {
-  BirchFolder,
-  BirchItem,
-  BirchRoot,
-  EnumBirchWatchEvent
-} from '../models'
-import {
+  EnumBirchWatchEvent,
   EnumTreeItemType,
-  EnumTreeViewExtendedEvent,
+  EnumTreeViewExtendedEvent
+} from 'react-birch-types'
+import type {
   ITreeViewExtendedHandle,
   IBirchContext,
-  ITreeItem
-} from '../types'
+  ITreeItem,
+  IBirchFolder,
+  IBirchItem
+} from 'react-birch-types'
 
 export const useHandleApi = (
   birchContextRef: React.MutableRefObject<IBirchContext>
@@ -42,12 +41,7 @@ export const useHandleApi = (
       treeViewHandleExtended,
       model,
       wrapperRef,
-      activeSelection: {
-        activeItem,
-        pseudoActiveItem,
-        updateActiveItem,
-        updatePseudoActiveItem
-      },
+      activeSelection: { updateActiveItem, updatePseudoActiveItem },
       prompts: { supervisePrompt, promptRename, promptNewFolder, promptNewItem }
     } = birchContextRef.current
 
@@ -59,44 +53,44 @@ export const useHandleApi = (
       return fileH
     }
 
-    const openFolder = async (pathOrFolder: string | BirchFolder) => {
-      const folder: BirchFolder =
+    const openFolder = async (pathOrFolder: string | IBirchFolder) => {
+      const folder: IBirchFolder =
         typeof pathOrFolder === 'string'
           ? ((await model.root.forceLoadItemEntryAtPath(
               pathOrFolder
-            )) as BirchFolder)
+            )) as IBirchFolder)
           : pathOrFolder
 
-      if (folder && folder.constructor === BirchFolder) {
+      if (folder && folder.type === EnumTreeItemType.Folder) {
         return model.root.expandFolder(folder)
       }
       return null
     }
 
-    const closeFolder = async (pathOrFolder: string | BirchFolder) => {
-      const folder: BirchFolder =
+    const closeFolder = async (pathOrFolder: string | IBirchFolder) => {
+      const folder: IBirchFolder =
         typeof pathOrFolder === 'string'
           ? ((await model.root.forceLoadItemEntryAtPath(
               pathOrFolder
-            )) as BirchFolder)
+            )) as IBirchFolder)
           : pathOrFolder
 
-      if (folder && folder.constructor === BirchFolder) {
+      if (folder && folder.type === EnumTreeItemType.Folder) {
         return model.root.collapseFolder(folder)
       }
       return null
     }
 
-    const toggleFolder = async (pathOrDir: string | BirchFolder) => {
+    const toggleFolder = async (pathOrDir: string | IBirchFolder) => {
       const dir =
         typeof pathOrDir === 'string'
           ? await getItemHandle(pathOrDir)
           : pathOrDir
       if (dir.type === EnumTreeItemType.Folder) {
-        if ((dir as BirchFolder).expanded) {
-          closeFolder(dir as BirchFolder)
+        if ((dir as IBirchFolder).expanded) {
+          void closeFolder(dir as IBirchFolder)
         } else {
-          openFolder(dir as BirchFolder)
+          void openFolder(dir as IBirchFolder)
         }
       }
     }
@@ -104,27 +98,27 @@ export const useHandleApi = (
     const collapseAll = async () => {
       await model.root.flushEventQueue()
 
-      const toFlatten: BirchFolder[] = []
+      const toFlatten: IBirchFolder[] = []
 
       for (let _i = 0; _i < model.root.branchSize; _i++) {
         const entry = model.root.getItemEntryAtIndex(_i)!
         if (
           entry.type === EnumTreeItemType.Folder &&
-          (entry as BirchFolder).expanded
+          (entry as IBirchFolder).expanded
         ) {
-          toFlatten.push(entry as BirchFolder)
+          toFlatten.push(entry as IBirchFolder)
         }
       }
 
-      toFlatten.forEach(entry => entry.setCollapsed())
+      toFlatten.forEach((entry) => entry.setCollapsed())
 
-      updateActiveItem(null!)
-      updatePseudoActiveItem(null!)
+      void updateActiveItem(null!)
+      void updatePseudoActiveItem(null!)
       events.current.emit(EnumTreeViewExtendedEvent.OnDidChangeSelection, null)
     }
 
     const scrollIntoView = (
-      itemOrFolder: BirchItem | BirchFolder,
+      itemOrFolder: IBirchItem | IBirchFolder,
       align: Align = 'center'
     ) => {
       const idx = model.root.getIndexAtItemEntry(itemOrFolder)
@@ -138,7 +132,7 @@ export const useHandleApi = (
     }
 
     const ensureVisible = async (
-      pathOrItemEntry: string | BirchItem | BirchFolder,
+      pathOrItemEntry: string | IBirchItem | IBirchFolder,
       align: Align = 'auto'
     ) => {
       await model.root.flushEventQueue()
@@ -148,10 +142,7 @@ export const useHandleApi = (
           ? await model.root.forceLoadItemEntryAtPath(pathOrItemEntry)
           : pathOrItemEntry
 
-      if (
-        !(itemEntry instanceof BirchItem) ||
-        itemEntry.constructor === BirchRoot
-      ) {
+      if (itemEntry.root === itemEntry) {
         throw new TypeError(`Object not a valid BirchItem`)
       }
       if (scrollIntoView(itemEntry, align)) {
@@ -167,7 +158,7 @@ export const useHandleApi = (
     }
 
     const unlinkItem = async (
-      fileOrDirOrPath: BirchItem | BirchFolder | string
+      fileOrDirOrPath: IBirchItem | IBirchFolder | string
     ) => {
       const filedir =
         typeof fileOrDirOrPath === 'string'
@@ -181,7 +172,7 @@ export const useHandleApi = (
       })
     }
 
-    const createdItem = async (item: ITreeItem, parentDir: BirchFolder) => {
+    const createdItem = async (item: ITreeItem, parentDir: IBirchFolder) => {
       console.log('createdItem', item.tid, parentDir.tid)
 
       const newName = item.label
@@ -202,7 +193,7 @@ export const useHandleApi = (
             item.details.command.handler!(item)
             treeViewHandleExtended.current.events.emit(
               EnumTreeViewExtendedEvent.OnDidChangeSelection,
-              item as BirchItem
+              item as IBirchItem
             )
           }
         }, 0)
@@ -227,36 +218,36 @@ export const useHandleApi = (
       getItemHandle,
       ensureVisible,
 
-      unlinkItem: async (fileOrDirOrPath: BirchItem | BirchFolder | string) =>
+      unlinkItem: async (fileOrDirOrPath: IBirchItem | IBirchFolder | string) =>
         unlinkItem(fileOrDirOrPath),
-      rename: async (fileOrDirOrPath: BirchItem | BirchFolder | string) =>
+      rename: async (fileOrDirOrPath: IBirchItem | IBirchFolder | string) =>
         supervisePrompt(await promptRename(fileOrDirOrPath as any)),
-      newItem: async (dirOrPath: BirchFolder | string, iconPath?: string) => {
+      newItem: async (dirOrPath: IBirchFolder | string, iconPath?: string) => {
         const result = await promptNewItem(dirOrPath as any, iconPath)
         supervisePrompt(result)
       },
-      newFolder: async (dirOrPath: BirchFolder | string) => {
+      newFolder: async (dirOrPath: IBirchFolder | string) => {
         const result = await promptNewFolder(dirOrPath as any)
         supervisePrompt(result)
       },
-      createdItem: async (item: ITreeItem, parentDir: BirchFolder) =>
+      createdItem: async (item: ITreeItem, parentDir: IBirchFolder) =>
         createdItem(item, parentDir),
-      onBlur: callback =>
+      onBlur: (callback) =>
         events.current.on(EnumTreeViewExtendedEvent.OnBlur, callback),
-      onDidChangeSelection: callback =>
+      onDidChangeSelection: (callback) =>
         events.current.on(
           EnumTreeViewExtendedEvent.OnDidChangeSelection,
           callback
         ),
       hasDirectFocus: () => wrapperRef.current === document.activeElement,
 
-      onDidChangeModel: callback =>
+      onDidChangeModel: (callback) =>
         events.current.on(EnumTreeViewExtendedEvent.DidChangeModel, callback),
-      onceDidChangeModel: callback =>
+      onceDidChangeModel: (callback) =>
         events.current.once(EnumTreeViewExtendedEvent.DidChangeModel, callback),
-      onDidUpdate: callback =>
+      onDidUpdate: (callback) =>
         events.current.on(EnumTreeViewExtendedEvent.DidUpdate, callback),
-      onceDidUpdate: callback =>
+      onceDidUpdate: (callback) =>
         events.current.once(EnumTreeViewExtendedEvent.DidUpdate, callback),
 
       events: events.current
@@ -269,3 +260,5 @@ export const useHandleApi = (
     treeViewHandleExtended.current = handle
   }, [viewId])
 }
+
+export default useHandleApi

@@ -1,9 +1,5 @@
 import { ITreeDataProvider } from './ITreeDataProvider'
-import {
-  ITreeViewHandle,
-  ITreeViewExtendedHandle,
-  ITreeViewItemRendererProps
-} from '.'
+import { ITreeViewHandle, ITreeViewExtendedHandle } from '.'
 
 export interface ITreeViewProps {
   /** View Id */
@@ -18,7 +14,7 @@ export interface ITreeViewProps {
   renderItem: React.FC<any>
 }
 
-export interface BirchTreeViewPropsInternal extends ITreeViewProps {
+export interface IBirchTreeViewPropsInternal extends ITreeViewProps {
   handle: React.MutableRefObject<ITreeViewExtendedHandle>
 }
 

@@ -1,10 +1,10 @@
-import { BirchFolder, BirchItem } from '..'
+import { IBirchFolder, IBirchItem } from 'react-birch-types'
 import { PromptHandle } from './PromptHandle'
 
 export class PromptHandleRename extends PromptHandle {
   constructor(
     public readonly originalLabel: string,
-    public readonly target: BirchItem | BirchFolder
+    public readonly target: IBirchItem | IBirchFolder
   ) {
     super()
     this.$.value = originalLabel
@@ -23,3 +23,5 @@ export class PromptHandleRename extends PromptHandle {
     return this.target.iconPath
   }
 }
+
+export default PromptHandleRename

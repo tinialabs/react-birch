@@ -1,5 +1,3 @@
-import { EventEmitter } from 'birch-event-emitter'
-
 export interface IMenuItem {
   label: string
   disabled: boolean

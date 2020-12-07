@@ -1,8 +1,8 @@
 import {
-  BirchFolder,
-  BirchItem,
-  PromptHandleNewItem,
-  PromptHandleRename
+  IBirchFolder,
+  IBirchItem,
+  IPromptHandleNewItem,
+  IPromptHandleRename
 } from '../models'
 
 export enum EnumBirchItemType {
@@ -14,27 +14,27 @@ export enum EnumBirchItemType {
 }
 
 export interface BirchItemEntryProps {
-  item: BirchItem
+  item: IBirchItem
   itemType: EnumBirchItemType.BirchItem
 }
 
 export interface BirchItemFolderProps {
-  item: BirchFolder
+  item: IBirchFolder
   itemType: EnumBirchItemType.BirchFolder
 }
 
 export interface BirchItemRendererNewItemProps {
-  item: PromptHandleNewItem
+  item: IPromptHandleNewItem
   itemType: EnumBirchItemType.NewItemPrompt
 }
 
 export interface BirchItemRendererNewFolderProps {
-  item: PromptHandleNewItem
+  item: IPromptHandleNewItem
   itemType: EnumBirchItemType.NewFolderPrompt
 }
 
 export interface BirchItemRendererRenamePromptProps {
-  item: PromptHandleRename
+  item: IPromptHandleRename
   itemType: EnumBirchItemType.RenamePrompt
 }
 

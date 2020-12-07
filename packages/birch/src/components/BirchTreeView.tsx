@@ -1,25 +1,17 @@
 import * as React from 'react'
-import {
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useReducer
-} from 'react'
+import { useRef, useEffect, useCallback, useMemo, useReducer } from 'react'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 import { FixedSizeList } from 'react-window'
 
-import { TreeViewModel } from '../models'
-
-import { renderBirchTreeViewItem } from './BirchTreeViewItem'
-
-import {
+import type {
   IBirchTreeItemProps,
   IBirchContext,
-  EnumTreeViewExtendedEvent,
-  BirchTreeViewPropsInternal
-} from '../types'
+  IBirchTreeViewPropsInternal
+} from 'react-birch-types'
+import { EnumTreeViewExtendedEvent } from 'react-birch-types'
+import { TreeViewModel } from '../models'
+import { Decoration } from '../models/decoration'
+import { renderBirchTreeViewItem } from './BirchTreeViewItem'
 
 import { usePrompts } from './BirchUsePrompts'
 import { useActiveSelection } from './BirchUseSelection'
@@ -28,18 +20,13 @@ import { useDragDropContainer } from './BirchUseDragDrop'
 import { useDecorations } from './BirchUseDecorations'
 import { useHandleApi } from './BirchUseHandleApi'
 import { useHandleSimpleApi, TreeViewHandle } from './BirchUseHandleSimpleApi'
-import { Decoration } from '../models/decoration'
 
 const useForceUpdate = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const [, update] = useReducer(
-    (num: number): number => (num + 1) % 1_000_000,
-    0
-  )
+  const [, update] = useReducer((num: number): number => (num + 1) % 1000000, 0)
   return update as () => void
 }
 
-export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
+export const BirchTreeView: React.FC<IBirchTreeViewPropsInternal> = React.memo(
   ({ viewId, title, renderItem, options, handle }) => {
     const listRef = React.useRef<any>()
     const wrapperRef = React.useRef<HTMLDivElement>()
@@ -56,10 +43,11 @@ export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
           >,
           events: new EventEmitter(),
           model: new TreeViewModel({ options, viewId }),
-          didUpdate: () =>
+          didUpdate: () => {
             birchContextRef.current.events.emit(
               EnumTreeViewExtendedEvent.DidUpdate
-            ),
+            )
+          },
           itemIdToRefMap: new Map<number, HTMLDivElement>(),
           forceUpdate,
           listRef,
@@ -96,7 +84,7 @@ export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
       birchContext.decorations = {
         activeItemDecoration: new Decoration('active'),
         pseudoActiveItemDecoration: new Decoration('pseudo-active')
-      }
+      } as any
 
       birchContext.itemIdToRefMap.clear()
 
@@ -202,12 +190,6 @@ export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
       [viewId, birchContextRef.current.model]
     )
 
-    const getItemKey = useCallback(
-      (index: number) =>
-        birchContextRef.current.getItemAtIndex(index).item.birchId,
-      [birchContextRef.current.getItemAtIndex, viewId]
-    )
-
     /* RENDER */
 
     return (
@@ -241,7 +223,7 @@ export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
           <div ref={birchContextRef.current.listRef}>
             {Array.apply(null, {
               length: birchContextRef.current.adjustedRowCount
-            }).map((_, index) => {
+            }).map((value, index) => {
               return renderBirchItem({ index, style: options.style })
             })}
           </div>
@@ -251,7 +233,9 @@ export const BirchTreeView: React.FC<BirchTreeViewPropsInternal> = React.memo(
   }
 )
 
-type InstanceRef<T> = { current: T }
+interface InstanceRef<T> {
+  current: T
+}
 
 const noValue = Symbol('lazyRef.noValue')
 

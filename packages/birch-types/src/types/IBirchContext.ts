@@ -2,13 +2,14 @@ import * as React from 'react'
 import { DisposablesComposite, EventEmitter } from 'birch-event-emitter'
 
 import {
-  TreeViewModel,
-  BirchItem,
-  BirchFolder,
-  PromptHandleNewItem,
-  PromptHandleRename
+  ITreeViewModel,
+  IBirchItem,
+  IBirchFolder,
+  IPromptHandleNewItem,
+  IPromptHandleRename
 } from '../models'
 
+import { IDecoration } from '../models/decoration'
 import {
   IBirchTreeItemProps,
   ITreeViewExtendedHandle,
@@ -16,8 +17,6 @@ import {
   EnumBirchItemType,
   ITreeViewOptions
 } from '.'
-
-import { Decoration } from '../models/decoration'
 
 export interface IBirchContext {
   viewId: string
@@ -30,7 +29,7 @@ export interface IBirchContext {
   events: EventEmitter<{}>
   listRef: React.MutableRefObject<any>
   wrapperRef: React.MutableRefObject<HTMLDivElement>
-  model: TreeViewModel
+  model: ITreeViewModel
   itemIdToRefMap: Map<number, HTMLDivElement>
   didUpdate: () => void
   getItemAtIndex: (index: number) => IBirchTreeItemProps
@@ -39,38 +38,38 @@ export interface IBirchContext {
 
   prompts: {
     promptRename: (
-      pathOrItemEntry: string | BirchItem
-    ) => Promise<PromptHandleRename>
+      pathOrItemEntry: string | IBirchItem
+    ) => Promise<IPromptHandleRename>
     promptNewFolder: (
-      pathOrFolder: string | BirchFolder
-    ) => Promise<PromptHandleNewItem>
+      pathOrFolder: string | IBirchFolder
+    ) => Promise<IPromptHandleNewItem>
     promptNewItem: (
-      pathOrFolder: string | BirchFolder,
+      pathOrFolder: string | IBirchFolder,
       iconPath: string
-    ) => Promise<PromptHandleNewItem>
+    ) => Promise<IPromptHandleNewItem>
     supervisePrompt: (
-      promptHandle: PromptHandleNewItem | PromptHandleRename
+      promptHandle: IPromptHandleNewItem | IPromptHandleRename
     ) => void
   }
 
   decorations: {
-    activeItemDecoration: Decoration
-    pseudoActiveItemDecoration: Decoration
+    activeItemDecoration: IDecoration
+    pseudoActiveItemDecoration: IDecoration
   }
 
   activeSelection: {
     handleItemClicked: (
       ev: React.MouseEvent<Element, MouseEvent>,
-      item: BirchItem | BirchFolder,
+      item: IBirchItem | IBirchFolder,
       type: EnumBirchItemType
     ) => void
-    activeItem: BirchItem | BirchFolder
-    pseudoActiveItem: BirchItem | BirchFolder
+    activeItem: IBirchItem | IBirchFolder
+    pseudoActiveItem: IBirchItem | IBirchFolder
     updateActiveItem: (
-      fileOrDirOrPath: string | BirchItem | BirchFolder
+      fileOrDirOrPath: string | IBirchItem | IBirchFolder
     ) => Promise<void>
     updatePseudoActiveItem: (
-      fileOrDirOrPath: string | BirchItem | BirchFolder
+      fileOrDirOrPath: string | IBirchItem | IBirchFolder
     ) => Promise<void>
     handleKeyDown: (ev: React.KeyboardEvent<Element>) => boolean
     selectionProps: {
@@ -84,7 +83,7 @@ export interface IBirchContext {
     handleContextMenu: (ev: React.MouseEvent<Element, MouseEvent>) => void
     handleItemContextMenu: (
       ev: React.MouseEvent<Element, MouseEvent>,
-      item: BirchItem | BirchFolder
+      item: IBirchItem | IBirchFolder
     ) => void
   }
 

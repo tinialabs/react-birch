@@ -22,7 +22,7 @@ export const BirchTreeViewItemPrompt = (
       inputElement.className = className
     }
     if (style !== null && typeof style === 'object') {
-      Object.keys(style).forEach(prop => {
+      Object.keys(style).forEach((prop) => {
         if (typeof style[prop] === 'string' && inputElement[prop]) {
           inputElement[prop] = style[prop]
         }

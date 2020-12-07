@@ -1,23 +1,22 @@
 import * as React from 'react'
 import { useRef, useCallback, useEffect } from 'react'
 
-import { BirchFolder, BirchItem, BirchItemOrFolder } from '../models'
-
 import {
   EnumBirchItemType,
   EnumTreeViewExtendedEvent,
-  IBirchContext,
-  EnumTreeItemType
-} from '../types'
+  EnumTreeItemType,
+  EnumDecorationTargetMatchMode
+} from 'react-birch-types'
 
-import { DecorationTargetMatchMode } from '../models/decoration'
+import type { IBirchContext, IBirchFolder, IBirchItem } from 'react-birch-types'
+
 import { KeyboardHotkeys } from '../services/keyboardHotkeys'
 
 export const useActiveSelection = (
   birchContextRef: React.MutableRefObject<IBirchContext>
 ) => {
-  const activeItem = useRef<BirchItemOrFolder>()
-  const pseudoActiveItem = useRef<BirchItemOrFolder>()
+  const activeItem = useRef<IBirchItem | IBirchFolder>()
+  const pseudoActiveItem = useRef<IBirchItem | IBirchFolder>()
   const keyboardHotkeys = useRef<KeyboardHotkeys>()
   const viewId = birchContextRef.current.viewId
 
@@ -28,7 +27,9 @@ export const useActiveSelection = (
   }, [viewId])
 
   const updateActiveItem = useCallback(
-    async (fileOrDirOrPath: BirchItemOrFolder | string): Promise<void> => {
+    async (
+      fileOrDirOrPath: IBirchItem | IBirchFolder | string
+    ): Promise<void> => {
       const {
         model,
         forceUpdate,
@@ -51,7 +52,7 @@ export const useActiveSelection = (
         if (fileH) {
           activeItemDecoration.addTarget(
             fileH as any,
-            DecorationTargetMatchMode.Self
+            EnumDecorationTargetMatchMode.Self
           )
         }
         activeItem.current = fileH
@@ -60,7 +61,7 @@ export const useActiveSelection = (
       if (fileH) {
         await treeViewHandleExtended.current.ensureVisible(fileH)
         if (fileH.type === EnumTreeItemType.Folder) {
-          await model.root.expandFolder(fileH as BirchFolder, true)
+          await model.root.expandFolder(fileH as IBirchFolder, true)
         }
       }
     },
@@ -68,7 +69,9 @@ export const useActiveSelection = (
   )
 
   const updatePseudoActiveItem = useCallback(
-    async (fileOrDirOrPath: BirchItemOrFolder | string): Promise<void> => {
+    async (
+      fileOrDirOrPath: IBirchItem | IBirchFolder | string
+    ): Promise<void> => {
       const {
         model,
         forceUpdate,
@@ -91,7 +94,7 @@ export const useActiveSelection = (
         if (fileH) {
           pseudoActiveItemDecoration.addTarget(
             fileH as any,
-            DecorationTargetMatchMode.Self
+            EnumDecorationTargetMatchMode.Self
           )
         }
         pseudoActiveItem.current = fileH
@@ -113,26 +116,26 @@ export const useActiveSelection = (
   const handleItemClicked = useCallback(
     async (
       ev: React.MouseEvent,
-      item: BirchItemOrFolder,
+      item: IBirchItem | IBirchFolder,
       type: EnumBirchItemType
     ) => {
       const { treeViewHandleExtended } = birchContextRef.current
 
       if (type === EnumBirchItemType.BirchItem) {
-        await updateActiveItem(item as BirchItem)
+        await updateActiveItem(item as IBirchItem)
         await updatePseudoActiveItem(null)
         if (item.details.command) {
-          ;(item as BirchItem).details.command.handler(item)
+          ;(item as IBirchItem).details.command.handler(item)
         }
         treeViewHandleExtended.current.events.emit(
           EnumTreeViewExtendedEvent.OnDidChangeSelection,
-          item as BirchItem
+          item as IBirchItem
         )
       }
       if (type === EnumBirchItemType.BirchFolder) {
-        await updatePseudoActiveItem(item as BirchItem)
+        await updatePseudoActiveItem(item as IBirchItem)
         await updateActiveItem(null)
-        treeViewHandleExtended.current.toggleFolder(item as BirchFolder)
+        treeViewHandleExtended.current.toggleFolder(item as IBirchFolder)
       }
     },
     []
@@ -141,7 +144,7 @@ export const useActiveSelection = (
   const handleClick = useCallback((ev: React.MouseEvent) => {
     // clicked in "blank space"
     if (ev.currentTarget === ev.target) {
-      updatePseudoActiveItem(null)
+      void updatePseudoActiveItem(null)
     }
   }, [])
 
@@ -165,3 +168,5 @@ export const useActiveSelection = (
     handleItemClicked
   }
 }
+
+export default useActiveSelection

@@ -1,6 +1,6 @@
-import { EventEmitter } from 'birch-event-emitter'
-import { ITreeItem } from '.'
-import { ITreeDataProvider } from './ITreeDataProvider'
+import type { EventEmitter } from 'birch-event-emitter'
+import type { ITreeDataProvider } from './ITreeDataProvider'
+import type { ITreeItem } from '.'
 
 type Disposer = () => void
 

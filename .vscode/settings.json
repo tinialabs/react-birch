@@ -1,5 +1,4 @@
 {
-    "search.useIgnoreFiles": false,
     "search.exclude": {
         "**/.fusebox": true,
         "**/build": true,
@@ -7,10 +6,11 @@
         "**/dist": true,
         "**/whendo-blockly": true,
         "**/bower_components": true,
-        "**/public": true
+        "**/public": true,
+        "**/*.cache": true,
+        "**/script.js": true
     },
     "javascript.implicitProjectConfig.experimentalDecorators": false,
-    "workbench.colorTheme": "Default Light+",
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true
     },
@@ -19,7 +19,7 @@
     "eslint.options": {
       "configFile": "./.eslintrc.js"
     },
-    "eslint.lintTask.options": "-c ${workspaceRoot}/.eslintrc.js --ignore-path ${workspaceRoot}/.eslintignore --ext .ts,.js .",
+    "eslint.lintTask.options": "-c ${workspaceRoot}/.eslintrc.js --ignore-path ${workspaceRoot}/.eslintignore --ext .ts,.js,.tsx .",
     "eslint.lintTask.enable": true, 
     "[javascript]": {
       "editor.formatOnSave": false
@@ -33,11 +33,15 @@
     "[typescriptreact]": {
       "editor.formatOnSave": false
     },
+    "[json]": {
+      "editor.formatOnSave": true   
+    },
     "eslint.validate": [
       "javascript",
       "javascriptreact",
       "typescript",
       "typescriptreact"
     ],
-    "eslint.alwaysShowStatus": true
+    "eslint.alwaysShowStatus": true,
+    "files.eol": "\n"
   }

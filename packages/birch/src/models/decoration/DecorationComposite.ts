@@ -1,10 +1,14 @@
 /* eslint-disable no-restricted-syntax */
 import { DisposablesComposite } from 'birch-event-emitter'
-import { BirchItemOrFolder } from '..'
-import { Decoration, DecorationTargetMatchMode } from './Decoration'
+import {
+  IBirchItem,
+  IBirchFolder,
+  IDecoration,
+  EnumDecorationTargetMatchMode
+} from 'react-birch-types'
 
 /**
- * The "consumer level" part of Decoration
+ * The "consumer level" part of IDecoration
  *
  * `ClasslistComposite` contains composited classnames from all the decorations applicable to a target
  *
@@ -44,7 +48,7 @@ export enum DecorationCompositeType {
   Inheritable
 }
 
-export enum ChangeReason {
+export enum EnumChangeReason {
   UnTargetDecoration = 1,
   TargetDecoration
 }
@@ -52,23 +56,23 @@ export enum ChangeReason {
 /**
  * Compositer for decorations
  *
- * When multiple `Decoration`s are applied to a target, they get grouped into a `DecorationComposite`
+ * When multiple `IDecoration`s are applied to a target, they get grouped into a `DecorationComposite`
  *
  * @internal
  */
 export class DecorationComposite {
   // speaking of memory consumption, next three Maps aren't constructed for each DecorationComposite unless it becomes self owned (due to special application or negation)
-  public renderedDecorations: Map<Decoration, DisposablesComposite>
+  public renderedDecorations: Map<IDecoration, DisposablesComposite>
 
-  public targetedDecorations: Set<Decoration>
+  public targetedDecorations: Set<IDecoration>
 
-  public negatedDecorations: Set<Decoration>
+  public negatedDecorations: Set<IDecoration>
 
   public parent: DecorationComposite
 
   public compositeCssClasslist: ClasslistComposite
 
-  private target: BirchItemOrFolder
+  private target: IBirchItem | IBirchFolder
 
   private type: DecorationCompositeType
 
@@ -79,7 +83,7 @@ export class DecorationComposite {
   private classlistChangeCallbacks: Set<() => void>
 
   constructor(
-    target: BirchItemOrFolder,
+    target: IBirchItem | IBirchFolder,
     type: DecorationCompositeType,
     parent: DecorationComposite
   ) {
@@ -121,7 +125,7 @@ export class DecorationComposite {
       this.recursiveRefresh(
         this,
         false,
-        ChangeReason.UnTargetDecoration,
+        EnumChangeReason.UnTargetDecoration,
         decoration,
         false
       )
@@ -138,24 +142,24 @@ export class DecorationComposite {
       this.recursiveRefresh(
         this,
         false,
-        ChangeReason.TargetDecoration,
+        EnumChangeReason.TargetDecoration,
         decoration,
         false
       )
     }
   }
 
-  public add(decoration: Decoration): void {
+  public add(decoration: IDecoration): void {
     const applicationMode = decoration.appliedTargets.get(this.target)
 
     const applicableToSelf =
       applicationMode &&
-      (applicationMode === DecorationTargetMatchMode.Self ||
-        applicationMode === DecorationTargetMatchMode.SelfAndChildren)
+      (applicationMode === EnumDecorationTargetMatchMode.Self ||
+        applicationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
     const applicableToChildren =
       applicationMode &&
-      (applicationMode === DecorationTargetMatchMode.Children ||
-        applicationMode === DecorationTargetMatchMode.SelfAndChildren)
+      (applicationMode === EnumDecorationTargetMatchMode.Children ||
+        applicationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
 
     if (this.type === DecorationCompositeType.Applicable && !applicableToSelf) {
       return
@@ -168,7 +172,7 @@ export class DecorationComposite {
     }
 
     if (!this.selfOwned) {
-      this.selfOwn(ChangeReason.TargetDecoration, decoration)
+      this.selfOwn(EnumChangeReason.TargetDecoration, decoration)
       this.targetedDecorations.add(decoration)
       return
     }
@@ -179,12 +183,12 @@ export class DecorationComposite {
     this.recursiveRefresh(
       this,
       false,
-      ChangeReason.TargetDecoration,
+      EnumChangeReason.TargetDecoration,
       decoration
     )
   }
 
-  public remove(decoration: Decoration): void {
+  public remove(decoration: IDecoration): void {
     // a non-self owned composite wouldn't have had a decoration to begin with
     if (!this.selfOwned) {
       return
@@ -195,29 +199,29 @@ export class DecorationComposite {
         this.targetedDecorations.size === 0 &&
         this.parent
       ) {
-        this.parentOwn(null!, ChangeReason.UnTargetDecoration, decoration)
+        this.parentOwn(null!, EnumChangeReason.UnTargetDecoration, decoration)
         return
       }
       this.recursiveRefresh(
         this,
         false,
-        ChangeReason.UnTargetDecoration,
+        EnumChangeReason.UnTargetDecoration,
         decoration
       )
     }
   }
 
-  public negate(decoration: Decoration): void {
+  public negate(decoration: IDecoration): void {
     const negationMode = decoration.negatedTargets.get(this.target)
 
     const negatedOnSelf =
       negationMode &&
-      (negationMode === DecorationTargetMatchMode.Self ||
-        negationMode === DecorationTargetMatchMode.SelfAndChildren)
+      (negationMode === EnumDecorationTargetMatchMode.Self ||
+        negationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
     const negatedOnChildren =
       negationMode &&
-      (negationMode === DecorationTargetMatchMode.Children ||
-        negationMode === DecorationTargetMatchMode.SelfAndChildren)
+      (negationMode === EnumDecorationTargetMatchMode.Children ||
+        negationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
 
     if (this.type === DecorationCompositeType.Applicable && !negatedOnSelf) {
       return
@@ -230,7 +234,7 @@ export class DecorationComposite {
     }
 
     if (!this.selfOwned) {
-      this.selfOwn(ChangeReason.UnTargetDecoration, decoration)
+      this.selfOwn(EnumChangeReason.UnTargetDecoration, decoration)
       this.negatedDecorations.add(decoration)
       return
     }
@@ -246,7 +250,7 @@ export class DecorationComposite {
   /**
    * unNegate doesn't mean "explicit apply"
    */
-  public unNegate(decoration: Decoration): void {
+  public unNegate(decoration: IDecoration): void {
     // a non-self owned composite wouldn't have been negated to begin with
     if (!this.selfOwned) {
       return
@@ -270,14 +274,14 @@ export class DecorationComposite {
         this.recursiveRefresh(
           this,
           false,
-          ChangeReason.TargetDecoration,
+          EnumChangeReason.TargetDecoration,
           decoration
         )
       }
     }
   }
 
-  private selfOwn(reason: ChangeReason, decoration: Decoration) {
+  private selfOwn(reason: EnumChangeReason, decoration: IDecoration) {
     if (this.selfOwned) {
       throw new Error(`DecorationComposite is already self owned`)
     }
@@ -293,7 +297,7 @@ export class DecorationComposite {
       // fate of the decoration (second arg) will be decided in `#recursiveRefresh`
       if (inheritedDecoration !== decoration) {
         this.processCompositeAlteration(
-          ChangeReason.TargetDecoration,
+          EnumChangeReason.TargetDecoration,
           inheritedDecoration
         )
       }
@@ -301,7 +305,7 @@ export class DecorationComposite {
 
     // perhaps negation is why this composite branched off
     if (
-      reason === ChangeReason.UnTargetDecoration &&
+      reason === EnumChangeReason.UnTargetDecoration &&
       // parent had it
       this.parent.renderedDecorations.has(decoration) &&
       // this one won't
@@ -317,8 +321,8 @@ export class DecorationComposite {
 
   private parentOwn(
     newParent?: DecorationComposite,
-    reason?: ChangeReason,
-    decoration?: Decoration
+    reason?: EnumChangeReason,
+    decoration?: IDecoration
   ) {
     this.selfOwned = false
     this.targetedDecorations = undefined
@@ -335,25 +339,25 @@ export class DecorationComposite {
   }
 
   private processCompositeAlteration(
-    reason: ChangeReason,
-    decoration: Decoration
+    reason: EnumChangeReason,
+    decoration: IDecoration
   ): boolean {
     if (!this.selfOwned) {
       throw new Error(`DecorationComposite is not self owned`)
     }
-    if (reason === ChangeReason.UnTargetDecoration) {
+    if (reason === EnumChangeReason.UnTargetDecoration) {
       const disposable = this.renderedDecorations.get(decoration)
       if (disposable) {
         const applicationMode = decoration.appliedTargets.get(this.target)
 
         const applicableToSelf =
           applicationMode &&
-          (applicationMode === DecorationTargetMatchMode.Self ||
-            applicationMode === DecorationTargetMatchMode.SelfAndChildren)
+          (applicationMode === EnumDecorationTargetMatchMode.Self ||
+            applicationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
         const applicableToChildren =
           applicationMode &&
-          (applicationMode === DecorationTargetMatchMode.Children ||
-            applicationMode === DecorationTargetMatchMode.SelfAndChildren)
+          (applicationMode === EnumDecorationTargetMatchMode.Children ||
+            applicationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
 
         if (
           applicableToSelf &&
@@ -379,17 +383,17 @@ export class DecorationComposite {
       return false
     }
 
-    if (reason === ChangeReason.TargetDecoration) {
+    if (reason === EnumChangeReason.TargetDecoration) {
       const negationMode = decoration.negatedTargets.get(this.target)
 
       const negatedOnSelf =
         negationMode &&
-        (negationMode === DecorationTargetMatchMode.Self ||
-          negationMode === DecorationTargetMatchMode.SelfAndChildren)
+        (negationMode === EnumDecorationTargetMatchMode.Self ||
+          negationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
       const negatedOnChildren =
         negationMode &&
-        (negationMode === DecorationTargetMatchMode.Children ||
-          negationMode === DecorationTargetMatchMode.SelfAndChildren)
+        (negationMode === EnumDecorationTargetMatchMode.Children ||
+          negationMode === EnumDecorationTargetMatchMode.SelfAndChildren)
 
       if (negatedOnSelf && this.type === DecorationCompositeType.Applicable) {
         return false
@@ -435,9 +439,9 @@ export class DecorationComposite {
   private recursiveRefresh(
     origin: DecorationComposite,
     updateReferences: boolean,
-    reason?: ChangeReason,
-    decoration?: Decoration,
-    notifyListeners = true
+    reason?: EnumChangeReason,
+    decoration?: IDecoration,
+    notifyListeners: boolean = true
   ) {
     // references changed
     if (!this.selfOwned && updateReferences) {
@@ -449,7 +453,7 @@ export class DecorationComposite {
       // purge all the decorations (unless applicable)
       for (const [renderedDecoration] of this.renderedDecorations) {
         this.processCompositeAlteration(
-          ChangeReason.UnTargetDecoration,
+          EnumChangeReason.UnTargetDecoration,
           renderedDecoration
         )
       }
@@ -457,7 +461,7 @@ export class DecorationComposite {
       // then add all the inherited decorations (unless not applicable)
       for (const [inheritedDecoration] of this.parent.renderedDecorations) {
         this.processCompositeAlteration(
-          ChangeReason.TargetDecoration,
+          EnumChangeReason.TargetDecoration,
           inheritedDecoration
         )
       }
@@ -467,7 +471,7 @@ export class DecorationComposite {
       }
     } else if (
       this.selfOwned &&
-      reason === ChangeReason.UnTargetDecoration &&
+      reason === EnumChangeReason.UnTargetDecoration &&
       this.renderedDecorations.has(decoration!)
     ) {
       this.processCompositeAlteration(reason, decoration!)
@@ -476,7 +480,7 @@ export class DecorationComposite {
       }
     } else if (
       this.selfOwned &&
-      reason === ChangeReason.TargetDecoration &&
+      reason === EnumChangeReason.TargetDecoration &&
       this.processCompositeAlteration(reason, decoration!) &&
       notifyListeners
     ) {
@@ -497,12 +501,12 @@ export class DecorationComposite {
   }
 
   private handleDecorationDidAddClassname = (
-    decoration: Decoration,
+    decoration: IDecoration,
     classname: string
   ) => {
     if (!this.selfOwned) {
       throw new Error(
-        `[INTERNAL] A non-self owned composite must not be incharge of Decoration events`
+        `[INTERNAL] A non-self owned composite must not be incharge of IDecoration events`
       )
     }
     ;(this.compositeCssClasslist.classlist as string[]).push(classname)
@@ -510,12 +514,12 @@ export class DecorationComposite {
   }
 
   private handleDecorationDidRemoveClassname = (
-    decoration: Decoration,
+    decoration: IDecoration,
     classname: string
   ) => {
     if (!this.selfOwned) {
       throw new Error(
-        `[INTERNAL] A non-self owned composite must not be incharge of Decoration events`
+        `[INTERNAL] A non-self owned composite must not be incharge of IDecoration events`
       )
     }
     const idx = this.compositeCssClasslist.classlist.indexOf(classname)
@@ -525,10 +529,10 @@ export class DecorationComposite {
     }
   }
 
-  private mergeDecorationClasslist = (decoration: Decoration) => {
+  private mergeDecorationClasslist = (decoration: IDecoration) => {
     if (!this.selfOwned) {
       throw new Error(
-        `[INTERNAL] A non-self owned composite must not be incharge of Decoration events`
+        `[INTERNAL] A non-self owned composite must not be incharge of IDecoration events`
       )
     }
     ;(this.compositeCssClasslist.classlist as string[]).push(
@@ -537,10 +541,13 @@ export class DecorationComposite {
     this.notifyClasslistChange()
   }
 
-  private removeDecorationClasslist(decoration: Decoration, notifyAll = true) {
+  private removeDecorationClasslist(
+    decoration: IDecoration,
+    notifyAll: boolean = true
+  ) {
     if (!this.selfOwned) {
       throw new Error(
-        `[INTERNAL] A non-self owned composite must not be incharge of Decoration events`
+        `[INTERNAL] A non-self owned composite must not be incharge of IDecoration events`
       )
     }
     for (const classname of decoration.cssClasslist) {
@@ -554,7 +561,7 @@ export class DecorationComposite {
     }
   }
 
-  private notifyClasslistChange(recursive = true) {
+  private notifyClasslistChange(recursive: boolean = true) {
     // here it's important that we don't iterate directly over this.classlistChangeCallbacks, instead create a copy of them first
     // if one of the callbacks alters the Set by adding/removing callback (inside another callback) it makes this loop infinite
     for (const cb of [...this.classlistChangeCallbacks]) {

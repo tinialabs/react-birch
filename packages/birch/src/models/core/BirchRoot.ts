@@ -6,50 +6,54 @@ import {
 } from 'birch-event-emitter'
 import * as pSeries from 'p-series'
 import { PathFx, unix, win32 } from 'path-fx'
-import { BirchFolder } from './BirchFolder'
-import { BirchItem } from './BirchItem'
 import {
-  BirchTreeEvent,
+  EnumBirchTreeEvent,
+  EnumBirchWatchEvent,
+  EnumTreeItemType
+} from 'react-birch-types'
+import type {
+  IBirchRoot,
+  IBirchFolder,
+  IBirchItem,
   IBirchCoreHost,
   IBirchTreeSupervisor,
   IBirchWatcherEvent,
-  BirchWatcherCallback,
-  EnumBirchWatchEvent,
-  BirchWatchTerminator
-} from '../../types/birch'
+  BirchWatcherCallbackType,
+  BirchWatchTerminatorType,
+  ITreeItem
+} from 'react-birch-types'
 
-import { BirchItemOrFolder } from '..'
-
-import { EnumTreeItemType, ITreeItem } from '../../types'
+import { BirchItem } from './BirchItem'
+import { BirchFolder } from './BirchFolder'
 
 interface IBirchWatcherInfo {
-  terminator: BirchWatchTerminator
-  callback: BirchWatcherCallback
+  terminator: BirchWatchTerminatorType
+  callback: BirchWatcherCallbackType
 }
 
-export class BirchRoot extends BirchFolder {
+export class BirchRoot extends BirchFolder implements IBirchRoot, IBirchFolder {
   public readonly host: IBirchCoreHost<any>
 
   private readonly _pathfx: PathFx
 
   private rootPath: string
 
-  private events: EventEmitter<BirchTreeEvent>
+  private events: EventEmitter<EnumBirchTreeEvent>
 
   private onceItemVisibleWatchers: WeakMap<
-    BirchItemOrFolder,
+    IBirchItem | IBirchFolder,
     {
-      item: BirchItemOrFolder
+      item: IBirchItem | IBirchFolder
       disposer: DisposablesComposite
-      callbacks: Set<(item: BirchItemOrFolder) => void>
+      callbacks: Set<(item: IBirchItem | IBirchFolder) => void>
     }
   >
 
   private onceFolderExpandedWatchers: WeakMap<
-    BirchFolder,
+    IBirchFolder,
     Set<
       (
-        folder: BirchFolder,
+        folder: IBirchFolder,
         nowExpanded: boolean,
         visibleAtSurface: boolean
       ) => void
@@ -57,17 +61,17 @@ export class BirchRoot extends BirchFolder {
   >
 
   private onceDisposedWatchers: WeakMap<
-    BirchItemOrFolder,
-    Set<(target: BirchItemOrFolder) => void>
+    IBirchItem | IBirchFolder,
+    Set<(target: IBirchItem | IBirchFolder) => void>
   >
 
   private onceParentChangedWatchers: WeakMap<
-    BirchItemOrFolder,
+    IBirchItem | IBirchFolder,
     Set<
       (
-        target: BirchItemOrFolder,
-        prevParent: BirchFolder,
-        newParent: BirchFolder
+        target: IBirchItem | IBirchFolder,
+        prevParent: IBirchFolder,
+        newParent: IBirchFolder
       ) => void
     >
   >
@@ -99,79 +103,82 @@ export class BirchRoot extends BirchFolder {
     }
 
     const superv: IBirchTreeSupervisor = {
-      notifyDidChangeTreeData: (t: BirchItemOrFolder) => {
-        this.events.emit(BirchTreeEvent.DidChangeTreeData, t)
+      notifyDidChangeTreeData: (t: IBirchItem | IBirchFolder) => {
+        this.events.emit(EnumBirchTreeEvent.DidChangeTreeData, t)
       },
       notifyWillProcessWatchEvent: (
-        t: BirchFolder,
+        t: IBirchFolder,
         event: IBirchWatcherEvent
       ) => {
-        this.events.emit(BirchTreeEvent.WillProcessWatchEvent, t, event)
+        this.events.emit(EnumBirchTreeEvent.WillProcessWatchEvent, t, event)
       },
       notifyDidProcessWatchEvent: (
-        t: BirchFolder,
+        t: IBirchFolder,
         event: IBirchWatcherEvent
       ) => {
-        this.events.emit(BirchTreeEvent.DidProcessWatchEvent, t, event)
+        this.events.emit(EnumBirchTreeEvent.DidProcessWatchEvent, t, event)
       },
-      notifyDidChangePath: (t: BirchItemOrFolder) => {
-        this.events.emit(BirchTreeEvent.DidChangePath, t)
+      notifyDidChangePath: (t: IBirchItem | IBirchFolder) => {
+        this.events.emit(EnumBirchTreeEvent.DidChangePath, t)
       },
       notifyWillChangeParent: (
-        t: BirchItemOrFolder,
-        prevParent: BirchFolder,
-        newParent: BirchFolder
+        t: IBirchItem | IBirchFolder,
+        prevParent: IBirchFolder,
+        newParent: IBirchFolder
       ) => {
         this.events.emit(
-          BirchTreeEvent.WillChangeParent,
+          EnumBirchTreeEvent.WillChangeParent,
           t,
           prevParent,
           newParent
         )
       },
       notifyDidChangeParent: (
-        t: BirchItemOrFolder,
-        prevParent: BirchFolder,
-        newParent: BirchFolder
+        t: IBirchItem | IBirchFolder,
+        prevParent: IBirchFolder,
+        newParent: IBirchFolder
       ) => {
         if (this.onceParentChangedWatchers.has(t)) {
           const callbacks = this.onceParentChangedWatchers.get(t)
-          callbacks.forEach(cb => {
+          callbacks.forEach((cb) => {
             cb(t, prevParent, newParent)
           })
           this.onceParentChangedWatchers.delete(t)
         }
         this.events.emit(
-          BirchTreeEvent.DidChangeParent,
+          EnumBirchTreeEvent.DidChangeParent,
           t,
           prevParent,
           newParent
         )
       },
-      notifyWillDispose: (t: BirchItemOrFolder) => {
-        this.events.emit(BirchTreeEvent.WillDispose, t)
+      notifyWillDispose: (t: IBirchItem | IBirchFolder) => {
+        this.events.emit(EnumBirchTreeEvent.WillDispose, t)
       },
-      notifyDidDispose: (t: BirchItemOrFolder) => {
+      notifyDidDispose: (t: IBirchItem | IBirchFolder) => {
         if (this.onceDisposedWatchers.has(t)) {
           const callbacks = this.onceDisposedWatchers.get(t)
-          callbacks.forEach(cb => {
+          callbacks.forEach((cb) => {
             cb(t)
           })
           this.onceDisposedWatchers.delete(t)
         }
-        this.events.emit(BirchTreeEvent.DidDispose, t)
+        this.events.emit(EnumBirchTreeEvent.DidDispose, t)
       },
       notifyWillChangeExpansionState: (
-        t: BirchFolder,
+        t: IBirchFolder,
         nowExpanded: boolean
       ) => {
         this.events.emit(
-          BirchTreeEvent.WillChangeExpansionState,
+          EnumBirchTreeEvent.WillChangeExpansionState,
           t,
           nowExpanded
         )
       },
-      notifyDidChangeExpansionState: (t: BirchFolder, nowExpanded: boolean) => {
+      notifyDidChangeExpansionState: (
+        t: IBirchFolder,
+        nowExpanded: boolean
+      ) => {
         const isVisibleAtSurface = this.isItemVisibleAtSurface(t)
         if (t.expanded) {
           if (this.onceItemVisibleWatchers.has(t) && isVisibleAtSurface) {
@@ -180,21 +187,21 @@ export class BirchRoot extends BirchFolder {
               disposer,
               item
             } = this.onceItemVisibleWatchers.get(t)!
-            callbacks.forEach(cb => {
+            callbacks.forEach((cb) => {
               cb(item)
             })
             disposer.dispose()
           }
           if (this.onceFolderExpandedWatchers.has(t)) {
             const callbacks = this.onceFolderExpandedWatchers.get(t)!
-            callbacks.forEach(cb => {
+            callbacks.forEach((cb) => {
               cb(t, nowExpanded, isVisibleAtSurface)
             })
             this.onceFolderExpandedWatchers.delete(t)
           }
         }
         this.events.emit(
-          BirchTreeEvent.DidChangeExpansionState,
+          EnumBirchTreeEvent.DidChangeExpansionState,
           t,
           nowExpanded,
           isVisibleAtSurface
@@ -202,11 +209,11 @@ export class BirchRoot extends BirchFolder {
       },
       supervisedWatch: (
         path: string,
-        callback: BirchWatcherCallback
-      ): BirchWatchTerminator => {
+        callback: BirchWatcherCallbackType
+      ): BirchWatchTerminatorType => {
         path = pathfx.normalize(path)
         // Might be overwritten if host.watch is available
-        let terminator: BirchWatchTerminator = this.terminateWatch
+        let terminator: BirchWatchTerminatorType = this.terminateWatch
         if (host && typeof host.watch === 'function') {
           terminator = host.watch(path)
         }
@@ -215,8 +222,7 @@ export class BirchRoot extends BirchFolder {
         return terminator
       }
     }
-
-    host.onDidChangeTreeData(async preItemRaw => {
+    host.onDidChangeTreeData(async (preItemRaw) => {
       const item = preItemRaw
         ? await host.getTreeItem(preItemRaw)
         : (this as ITreeItem)
@@ -241,7 +247,7 @@ export class BirchRoot extends BirchFolder {
     this.changeEventDispatchQueue = []
     this.fswatchers = new Map()
     this.terminateWatch = this.terminateWatch.bind(this)
-    super.setExpanded()
+    void super.setExpanded()
   }
 
   /**
@@ -262,80 +268,84 @@ export class BirchRoot extends BirchFolder {
   }
 
   public onDidChangeTreeData(
-    cb: (item: BirchItemOrFolder) => void
+    cb: (item: IBirchItem | IBirchFolder) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.DidChangeTreeData, cb)
+    return this.events.on(EnumBirchTreeEvent.DidChangeTreeData, cb)
   }
 
   public onDidChangeFolderExpansionState(
     cb: (
-      folder: BirchFolder,
+      folder: IBirchFolder,
       nowExpanded: boolean,
       visibleAtSurface: boolean
     ) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.DidChangeExpansionState, cb)
+    return this.events.on(EnumBirchTreeEvent.DidChangeExpansionState, cb)
   }
 
   public onWillChangeFolderExpansionState(
-    cb: (folder: BirchFolder, nowExpanded: boolean) => void
+    cb: (folder: IBirchFolder, nowExpanded: boolean) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.WillChangeExpansionState, cb)
+    return this.events.on(EnumBirchTreeEvent.WillChangeExpansionState, cb)
   }
 
   public onWillProcessWatchEvent(
-    cb: (folder: BirchFolder, event: IBirchWatcherEvent) => void
+    cb: (folder: IBirchFolder, event: IBirchWatcherEvent) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.WillProcessWatchEvent, cb)
+    return this.events.on(EnumBirchTreeEvent.WillProcessWatchEvent, cb)
   }
 
   public onDidProcessWatchEvent(
-    cb: (folder: BirchFolder, event: IBirchWatcherEvent) => void
+    cb: (folder: IBirchFolder, event: IBirchWatcherEvent) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.DidProcessWatchEvent, cb)
+    return this.events.on(EnumBirchTreeEvent.DidProcessWatchEvent, cb)
   }
 
   public onDidBranchUpdate(cb: () => void): IDisposable {
-    return this.events.on(BirchTreeEvent.BranchDidUpdate, cb)
+    return this.events.on(EnumBirchTreeEvent.BranchDidUpdate, cb)
   }
 
-  public onWillDispose(cb: (target: BirchItemOrFolder) => void): IDisposable {
-    return this.events.on(BirchTreeEvent.WillDispose, cb)
+  public onWillDispose(
+    cb: (target: IBirchItem | IBirchFolder) => void
+  ): IDisposable {
+    return this.events.on(EnumBirchTreeEvent.WillDispose, cb)
   }
 
-  public onDidDispose(cb: (target: BirchItemOrFolder) => void): IDisposable {
-    return this.events.on(BirchTreeEvent.DidDispose, cb)
+  public onDidDispose(
+    cb: (target: IBirchItem | IBirchFolder) => void
+  ): IDisposable {
+    return this.events.on(EnumBirchTreeEvent.DidDispose, cb)
   }
 
   public onDidChangeParent(
     callback: (
-      target: BirchItemOrFolder,
-      prevParent: BirchFolder,
-      newParent: BirchFolder
+      target: IBirchItem | IBirchFolder,
+      prevParent: IBirchFolder,
+      newParent: IBirchFolder
     ) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.DidChangeParent, callback)
+    return this.events.on(EnumBirchTreeEvent.DidChangeParent, callback)
   }
 
   public onWillChangeParent(
     callback: (
-      target: BirchItemOrFolder,
-      prevParent: BirchFolder,
-      newParent: BirchFolder
+      target: IBirchItem | IBirchFolder,
+      prevParent: IBirchFolder,
+      newParent: IBirchFolder
     ) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.WillChangeParent, callback)
+    return this.events.on(EnumBirchTreeEvent.WillChangeParent, callback)
   }
 
   public onDidChangePath(
-    callback: (target: BirchItemOrFolder) => void
+    callback: (target: IBirchItem | IBirchFolder) => void
   ): IDisposable {
-    return this.events.on(BirchTreeEvent.DidChangePath, callback)
+    return this.events.on(EnumBirchTreeEvent.DidChangePath, callback)
   }
 
   public onOnceDisposed(
-    target: BirchItemOrFolder,
-    callback: (target: BirchItemOrFolder) => void
+    target: IBirchItem | IBirchFolder,
+    callback: (target: IBirchItem | IBirchFolder) => void
   ): IDisposable {
     if (target.disposed) {
       callback(target)
@@ -356,12 +366,12 @@ export class BirchRoot extends BirchFolder {
     })
   }
 
-  public expandFolder(folder: BirchFolder, ensureVisible = true) {
-    return (folder as BirchRoot).setExpanded(ensureVisible)
+  public expandFolder(folder: IBirchFolder, ensureVisible: boolean = true) {
+    return (folder as IBirchRoot).setExpanded(ensureVisible)
   }
 
-  public collapseFolder(folder: BirchFolder) {
-    return (folder as BirchRoot).setCollapsed()
+  public collapseFolder(folder: IBirchFolder) {
+    return (folder as IBirchRoot).setCollapsed()
   }
 
   public dispatch(event: IBirchWatcherEvent): void {
@@ -391,7 +401,7 @@ export class BirchRoot extends BirchFolder {
   /**
    * Reverse of `BirchRoot#getItemEntryAtIndex`
    */
-  public getIndexAtItemEntry(itemEntry: BirchItemOrFolder) {
+  public getIndexAtItemEntry(itemEntry: IBirchItem | IBirchFolder) {
     return this.flattenedBranch.indexOf(itemEntry.birchId)
   }
 
@@ -417,7 +427,7 @@ export class BirchRoot extends BirchFolder {
    *
    * This method, unlike `BirchRoot#forceLoadItemEntryAtPath`, WILL NOT, force load anything (synchronous for that reason)
    */
-  public findItemEntryInLoadedTree(path: string): BirchItemOrFolder {
+  public findItemEntryInLoadedTree(path: string): IBirchItem | IBirchFolder {
     const pathfrags = this.pathfx.isRelative(path)
       ? this.pathfx.splitPath(path)
       : this.walkPathTillRelative(path)
@@ -429,7 +439,7 @@ export class BirchRoot extends BirchFolder {
     // eslint-disable-next-line no-cond-assign
     while ((label = pathfrags.shift())) {
       // eslint-disable-next-line no-loop-func
-      const item = next.find(c => c.label === label)
+      const item = next.find((c) => c.label === label)
       if (item && pathfrags.length === 0) {
         return item
       }
@@ -457,7 +467,7 @@ export class BirchRoot extends BirchFolder {
    */
   public async forceLoadItemEntryAtPath(
     path: string
-  ): Promise<BirchFolder | BirchItem> {
+  ): Promise<IBirchItem | IBirchFolder> {
     const pathfrags = this.pathfx.isRelative(path)
       ? this.pathfx.splitPath(path)
       : this.walkPathTillRelative(path)
@@ -470,7 +480,7 @@ export class BirchRoot extends BirchFolder {
     // eslint-disable-next-line no-cond-assign
     while ((label = pathfrags.shift())) {
       // eslint-disable-next-line no-loop-func
-      const item = next.find(c => c.label === label)
+      const item = next.find((c) => c.label === label)
       if (item && pathfrags.length === 0) {
         return item
       }
@@ -500,14 +510,14 @@ export class BirchRoot extends BirchFolder {
    * "Buried" means that item may (or may not) be inside an expanded folder, but at least one of its parent folder is in collapsed state preventing it
    * from being "visible" at surface.
    */
-  public isItemVisibleAtSurface(item: BirchItemOrFolder): boolean {
+  public isItemVisibleAtSurface(item: IBirchItem | IBirchFolder): boolean {
     if (item === this) {
       return true
     }
     return this.flattenedBranch.indexOf(item.birchId) > -1
   }
 
-  public async setExpanded(_ensureVisible?: boolean): Promise<void> {
+  public async setExpanded(ensureVisible?: boolean): Promise<void> {
     // noop: BirchRoot cannot be expanded
   }
 
@@ -525,7 +535,7 @@ export class BirchRoot extends BirchFolder {
       return pathADepth - pathBDepth
     })
     const promise = pSeries(
-      this.changeEventDispatchQueue.map(path => async () => {
+      this.changeEventDispatchQueue.map((path) => async () => {
         const watcher = this.fswatchers.get(path[0])
         if (watcher && typeof watcher.callback === 'function') {
           await watcher.callback({
@@ -544,7 +554,7 @@ export class BirchRoot extends BirchFolder {
 
   protected setFlattenedBranch(branch: Uint32Array) {
     this.flattenedBranch = branch
-    this.events.emit(BirchTreeEvent.BranchDidUpdate)
+    this.events.emit(EnumBirchTreeEvent.BranchDidUpdate)
   }
 
   private walkPathTillRelative(path: string): string[] {
@@ -593,3 +603,5 @@ export class BirchRoot extends BirchFolder {
     this.fswatchers.delete(this.pathfx.normalize(path))
   }
 }
+
+export default BirchRoot

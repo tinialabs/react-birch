@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { useCallback } from 'react'
 
+import type { IBirchContext, IBirchItem, IBirchFolder } from 'react-birch-types'
+
+import { EnumBirchItemType } from 'react-birch-types'
 import { useContextMenu } from '../services/contextMenu'
-
-import { BirchItem, BirchItemOrFolder, BirchFolder } from '../models'
-
-import { EnumBirchItemType, IBirchContext } from '../types'
 
 export const useContextMenuContainer = (
   birchContextRef: React.MutableRefObject<IBirchContext>
@@ -13,7 +12,7 @@ export const useContextMenuContainer = (
   const [showContextMenu] = useContextMenu()
 
   const getBoundingClientRectForItem = useCallback(
-    (item: BirchItem | BirchFolder) => {
+    (item: IBirchItem | IBirchFolder) => {
       const { itemIdToRefMap } = birchContextRef.current
 
       const divRef = itemIdToRefMap.get(item.birchId)
@@ -35,7 +34,7 @@ export const useContextMenuContainer = (
       }
     } = birchContextRef.current
 
-    let target: BirchItemOrFolder
+    let target: IBirchItem | IBirchFolder
 
     // capture ctx menu triggered through context menu button on keyboard
     if (ev.nativeEvent.which === 0) {
@@ -63,7 +62,7 @@ export const useContextMenuContainer = (
   }, [])
 
   const handleItemContextMenu = useCallback(
-    (ev: React.MouseEvent, item: BirchItemOrFolder) => {
+    (ev: React.MouseEvent, item: IBirchItem | IBirchFolder) => {
       const {
         treeViewHandleExtended,
         options: {
@@ -103,7 +102,7 @@ export const useContextMenuChild = ({
         itemType === EnumBirchItemType.BirchItem ||
         itemType === EnumBirchItemType.BirchFolder
       ) {
-        handleItemContextMenu(ev, item as BirchItem, itemType)
+        handleItemContextMenu(ev, item as IBirchItem, itemType)
       }
     },
     [item, itemType, handleItemContextMenu]

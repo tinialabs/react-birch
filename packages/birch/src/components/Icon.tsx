@@ -9,7 +9,7 @@ export interface IconProps extends ColorProps, SpaceProps {
 export const Icon = styled<any>('span')`
   text-align: center;
   font-style: normal;
-  font-family: '${props =>
+  font-family: '${(props) =>
     props.src.indexOf('/') > -1
       ? props.src.split('/')[0]
       : Object.keys(props.theme.icons)[0]}' !important;
@@ -18,7 +18,7 @@ export const Icon = styled<any>('span')`
     height: inherit;
     width: inherit;
     display: inline-block;
-    content: '${props =>
+    content: '${(props) =>
       props.src.indexOf('/') > -1
         ? props.theme.icons[props.src.split('/')[0]][props.src.split('/')[1]]
         : props.theme.icons[Object.keys(props.theme.icons)[0]][props.src]}';
