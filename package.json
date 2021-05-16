@@ -27,7 +27,9 @@
     "clean": "rimraf **/build && rimraf **/dist && rimraf **/node_modules && rm -rf yarn.lock",
     "fix": "berun-dev fix",
     "lint": "lerna run lint",
-    "postinstall2": "yarn build"
+    "publish": "lerna exec --ignore stories npm publish",
+    "postinstall": "yarn build",
+    "version-patch": "lerna exec npm version patch"
   },
   "dependencies": {},
   "resolutions": {

@@ -1,6 +1,6 @@
 {
   "name": "react-birch-types",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Common type definitions for react-birch",
   "main": "dist/index.js",
   "browser:module": "src/index.ts",
@@ -27,7 +27,6 @@
     "prepack": "npm run build && npm run generate-docs",
     "generate-docs": "typedoc --excludePrivate --excludeProtected --theme ../../node_modules/typedoc-clarity-theme/bin --out dist/docs ./src"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "jest": "^26.6.3",

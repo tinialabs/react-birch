@@ -1,6 +1,6 @@
 {
   "name": "react-birch-context-menu",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Custom context menu for react",
   "main": "dist/index.js",
   "browser:module": "src/index.ts",
