@@ -34,7 +34,11 @@ module.exports = {
         '@rushstack/no-new-null': 'off',
         'require-atomic-updates': 'off',
         'no-void': 'off',
-        'import/named': 'off'
+        'import/named': 'off',
+        'import/prefer-default-export': 'off',
+        '@typescript-eslint/member-ordering': 'off',
+        'no-bitwise': 'off',
+        'react/jsx-no-bind': 'off'
     },
     env: {
         es6: true

@@ -1,6 +1,6 @@
 {
     "search.exclude": {
-        "**/.fusebox": true,
+        "**/.bundless": true,
         "**/build": true,
         "**/node_modules": true,
         "**/dist": true,
@@ -10,7 +10,7 @@
         "**/*.cache": true,
         "**/script.js": true
     },
-    "javascript.implicitProjectConfig.experimentalDecorators": false,
+    "js/ts.implicitProjectConfig.experimentalDecorators": false,
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true
     },

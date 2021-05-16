@@ -1,0 +1,52 @@
+{
+  "name": "react-birch",
+  "version": "2.0.0",
+  "description": "Stylish solution for rendering nested trees in React apps",
+  "main": "src/index.ts",
+  "browser:module": "src/index.ts",
+  "types": "src/index.ts",
+  "author": "Tinia Labs",
+  "bugs": {
+    "url": "https://github.com/tinialabs/react-birch#issues"
+  },
+  "homepage": "https://github.com/tinialabs/react-birch#readme",
+  "keywords": [
+    "react",
+    "virtualized",
+    "file",
+    "monaco",
+    "vscode",
+    "tree",
+    "nested",
+    "object",
+    "list"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tinialabs/react-birch.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "berun-dev lint"
+  },
+  "dependencies": {
+    "react-birch-context-menu": "^2.0.0",
+    "react-birch-event-emitter": "^2.0.0",
+    "react-birch-types": "^2.0.0",
+    "react-birch-headless": "^2.0.0",
+    "classnames": "^2.3.1",
+    "mobx": "^4.15.4",
+    "p-series": "^2.1.0",
+    "path-fx": "^2.1.1",
+    "react-window": "^1.8.6",
+    "styled-components": "^5.3.0",
+    "styled-system": "^5.1.5",
+    "@styled-system/theme-get": "^5.1.2"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.5",
+    "@types/styled-system": "5.1.11",
+    "@types/styled-system__theme-get": "5.0.1"
+  }
+}

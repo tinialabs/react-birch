@@ -1,3 +1,3 @@
 # Mono repository for react-birch
 
-See [`react-birch`](./packages/birch/README.md)
+See [`react-birch`](./packages/react-birch/README.md)

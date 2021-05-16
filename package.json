@@ -1,5 +1,5 @@
 {
-  "name": "birch-mono-repository",
+  "name": "birch-next-mono-repository",
   "description": "Stylish solution for rendering nested trees in React apps",
   "private": true,
   "repository": {
@@ -10,28 +10,30 @@
     "name": "Tinia Labs"
   },
   "devDependencies": {
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "@types/styled-components": "5.1.4",
-    "@types/styled-system": "5.1.10",
-    "@sync-labs/eslint-config": "^2.2.5",
+    "@types/react": "^17.0.5",
+    "@types/react-dom": "^17.0.5",
+    "@types/styled-components": "5.1.9",
+    "@types/styled-system": "5.1.11",
+    "@sync-labs/eslint-config": "^2.2.6",
+    "eslint": "^7.26.0",
     "lerna": "^3.22.1",
+    "prettier": "^2.3.0",
     "rimraf": "^3.0.2",
-    "typescript": "4.1.2",
-    "@berun/dev-scripts": "^3.0.30"
+    "typescript": "4.2.4",
+    "styled-components": "5.3.0"
   },
   "scripts": {
     "build": "lerna run build",
-    "clean": "rimraf **/build && rimraf **/dist && rimraf **/node_modules && rm -rf yarn.lock && rm -rf .fusebox",
+    "clean": "rimraf **/build && rimraf **/dist && rimraf **/node_modules && rm -rf yarn.lock",
     "fix": "berun-dev fix",
     "lint": "lerna run lint",
-    "postinstall": "yarn build"
+    "postinstall2": "yarn build"
   },
   "dependencies": {},
   "resolutions": {
-    "typescript": "4.1.2",
-    "styled-components": "5.2.1",
-    "@types/styled-components": "5.1.4"
+    "typescript": "4.2.4",
+    "styled-components": "5.3.0",
+    "@types/styled-components": "5.1.9"
   },
   "workspaces": [
     "packages/*"
