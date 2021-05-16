@@ -94,7 +94,7 @@ export const BirchTreeView: React.FC<ITreeViewPropsInternal> = React.memo(
       const prevModel = birchContext.model
 
       if (viewId === prevModel.viewId) {
-        return
+        return undefined
       }
 
       // Reinitialize Model on reload

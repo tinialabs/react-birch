@@ -34,7 +34,6 @@
     "url": "https://github.com/tinialabs/react-birch.git"
   },
   "scripts": {
-    "dev": "vitro dev",
-    "lint": "berun-dev lint"
+    "dev": "vitro dev"
   }
 }

@@ -26,8 +26,7 @@
     "url": "https://github.com/tinialabs/react-birch.git"
   },
   "scripts": {
-    "build": "tsc",
-    "lint": "berun-dev lint"
+    "build": "tsc"
   },
   "dependencies": {
     "react-birch-event-emitter": "^2.0.0",

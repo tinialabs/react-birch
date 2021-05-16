@@ -452,6 +452,7 @@ export class BirchRoot extends BirchFolder implements IBirchRoot, IBirchFolder {
         next = (item as BirchRoot)._children
       }
     }
+    return null
   }
 
   /**
@@ -490,6 +491,7 @@ export class BirchRoot extends BirchFolder implements IBirchRoot, IBirchFolder {
         next = (item as BirchRoot)._children
       }
     }
+    return this
   }
 
   /**

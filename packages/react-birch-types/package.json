@@ -24,16 +24,12 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "lint": "tslint --project .",
-    "prepack": "npm run lint && npm run build && npm run generate-docs",
-    "postpublish": "npm run publish-docs",
-    "generate-docs": "typedoc --mode file --excludePrivate --excludeProtected --excludeNotExported --theme node_modules/typedoc-clarity-theme/bin --out dist/docs ./src",
-    "publish-docs": "gh-pages -d dist/docs"
+    "prepack": "npm run build && npm run generate-docs",
+    "generate-docs": "typedoc --excludePrivate --excludeProtected --theme ../../node_modules/typedoc-clarity-theme/bin --out dist/docs ./src"
   },
   "dependencies": {},
   "devDependencies": {
     "@types/jest": "^26.0.23",
-    "gh-pages": "^3.1.0",
     "jest": "^26.6.3",
     "ts-jest": "^26.5.6",
     "typedoc": "^0.20.36",

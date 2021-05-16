@@ -12,12 +12,8 @@
   "scripts": {
     "test": "echo TESTS TODO!!!",
     "build": "tsc",
-    "watch": "tsc -w",
-    "lint": "tslint --project .",
-    "prepack": "npm run lint && npm run build && npm run test && npm run generate-docs",
-    "postpublish": "npm run publish-docs",
-    "generate-docs": "typedoc --mode file --excludePrivate --excludeProtected --excludeNotExported --theme node_modules/typedoc-clarity-theme/bin --out dist/docs ./src",
-    "publish-docs": "gh-pages -d dist/docs"
+    "prepack": "npm run build && npm run test && npm run generate-docs",
+    "generate-docs": "typedoc --excludePrivate --excludeProtected --theme ../../node_modules/typedoc-clarity-theme/bin --out dist/docs ./src"
   },
   "keywords": [
     "react",
