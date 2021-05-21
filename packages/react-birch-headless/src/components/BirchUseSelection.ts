@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useRef, useCallback, useEffect } from 'react'
 
 import {
-  EnumTreeItemTypeExtended,
   EnumTreeViewEventType,
   EnumTreeItemType,
   EnumBirchDecorationsTargetMatchMode
@@ -116,15 +115,11 @@ export const useActiveSelection = (
     treeViewHandleExtended.current.events.emit(EnumTreeViewEventType.OnBlur)
   }, [])
 
-  const handleItemClicked = useCallback(
-    async (
-      ev: React.MouseEvent,
-      item: IBirchItem | IBirchFolder,
-      type: EnumTreeItemTypeExtended
-    ) => {
+  const handleItemSelected = useCallback(
+    async (item: IBirchItem | IBirchFolder) => {
       const { treeViewHandleExtended } = birchContextRef.current
 
-      if (type === EnumTreeItemTypeExtended.Item) {
+      if (item.type === EnumTreeItemType.Item) {
         await updateActiveItem(item as IBirchItem)
         await updatePseudoActiveItem(null)
         if (item.details.command) {
@@ -135,7 +130,7 @@ export const useActiveSelection = (
           item as IBirchItem
         )
       }
-      if (type === EnumTreeItemTypeExtended.Folder) {
+      if (item.type === EnumTreeItemType.Folder) {
         await updatePseudoActiveItem(item as IBirchItem)
         await updateActiveItem(null)
         treeViewHandleExtended.current.toggleFolder(item as IBirchFolder)
@@ -168,6 +163,6 @@ export const useActiveSelection = (
     updatePseudoActiveItem,
     handleKeyDown,
     selectionProps,
-    handleItemClicked
+    handleItemSelected
   }
 }

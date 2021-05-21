@@ -1,5 +1,5 @@
-import { EnumTreeItemType, EnumTreeViewEventType } from 'react-birch-types'
-import type { IBirchItem, IBirchFolder, IBirchContext } from 'react-birch-types'
+import { EnumTreeItemType } from 'react-birch-types'
+import type { IBirchFolder, IBirchContext } from 'react-birch-types'
 
 export class BirchKeyboardHotkeys {
   private hotkeyActions: {
@@ -168,19 +168,9 @@ export class BirchKeyboardHotkeys {
     if (!currentPseudoActive) {
       return
     }
-    if (currentPseudoActive.type === EnumTreeItemType.Folder) {
-      this.birchContext.current.treeViewHandleExtended.current.toggleFolder(
-        currentPseudoActive as IBirchFolder
-      )
-    } else if (currentPseudoActive.type === EnumTreeItemType.Item) {
-      this.birchContext.current.treeViewHandleExtended.current.setActiveItem(
-        currentPseudoActive as IBirchItem
-      )
-      this.birchContext.current.treeViewHandleExtended.current.events.emit(
-        EnumTreeViewEventType.OnDidChangeSelection,
-        currentPseudoActive as IBirchItem
-      )
-    }
+    this.birchContext.current.activeSelection.handleItemSelected(
+      currentPseudoActive
+    )
   }
 
   private toggleFolderExpand = (): void => {

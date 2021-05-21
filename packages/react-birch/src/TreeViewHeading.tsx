@@ -57,6 +57,7 @@ export interface TreeViewHeadingProps {
   title: string
   titleMenus: {
     command: string
+    title: string
     icon: string
     handler?: (handle: IBirchTreeViewHandleExtended) => void
   }[]
@@ -70,10 +71,11 @@ export const TreeViewHeading: React.FC<TreeViewHeadingProps> = ({
   handle
 }) => {
   const icons = useMemo(() => {
-    return titleMenus.map(({ command, icon, handler }) => {
+    return titleMenus.map(({ command, title, icon, handler }) => {
       return (
         <HeadingIcon
           key={command}
+          title={title}
           // eslint-disable-next-line react/jsx-no-bind
           onClick={() => {
             handler!(handle.current)

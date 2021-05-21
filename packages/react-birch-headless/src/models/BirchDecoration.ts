@@ -103,9 +103,6 @@ export class BirchDecoration {
     if (existingFlags === flags) {
       return
     }
-    if (!(target.type === EnumTreeItemType.Item)) {
-      return
-    }
     this._appliedTargets.set(target, flags)
     this.events.emit(EnumBirchDecorationEvent.AddTarget, this, target, flags)
     this._appliedTargetsDisposables.set(

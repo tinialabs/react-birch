@@ -83,7 +83,7 @@ const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {
     model,
     dragDrop: { dragAndDropService },
     contextMenu: { handleItemContextMenu },
-    activeSelection: { handleItemClicked },
+    activeSelection: { handleItemSelected },
     options: {
       contributes: { itemMenus }
     }
@@ -138,7 +138,10 @@ const BirchTreeViewItem = memo((props: BirchTreeViewItemProps) => {
     item,
     itemType,
     decorations: model.decorations.getDecorations(item as any),
-    onClick: handleItemClicked,
+    onClick: (e, item: IBirchItem | IBirchFolder) => {
+      e.stopPropagation()
+      handleItemSelected(item)
+    },
     itemMenus,
     onContextMenu,
     style,

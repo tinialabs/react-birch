@@ -144,7 +144,8 @@ export const usePrompts = (
               parentDir,
               newName,
               newPath,
-              promptHandle.type
+              promptHandle.type,
+              null // use defaultContent from tree provider
             )
             if (maybeItem && maybeItem.type && maybeItem.label) {
               model.root.dispatch({

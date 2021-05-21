@@ -60,10 +60,16 @@ const TreeViewItemRowStyle = styled('div')`
   padding-left: ${(props) => 16 * (props['data-depth'] - 1)}px;
   border-radius: ${themeGet('radii.1')}px;
   display: flex;
+  color: ${themeGet('colors.primary')};
 
-  &:hover,
-  &.pseudo-active {
+  &:hover {
     background-color: ${themeGet('colors.beige1')};
+  }
+
+  &.pseudo-active,
+  &:hover.pseudo-active {
+    color: ${themeGet('colors.light1')};
+    background-color: ${themeGet('colors.dark1')};
   }
 
   &:hover ${WidgetStyle} {
@@ -104,7 +110,7 @@ const TreeViewItemLabel = styled.span`
   display: flex;
   align-items: center;
   overflow: hidden;
-  color: ${themeGet('colors.primary')};
+  color: inherit;
 `
 
 const TreeViewItemFileName = styled.span`
@@ -173,7 +179,7 @@ export const TreeViewItemStyled = forwardRef(
           itemType === EnumTreeItemTypeExtended.Item ||
           itemType === EnumTreeItemTypeExtended.Folder
         ) {
-          onClick(ev, item as IBirchItem, itemType)
+          onClick(ev, item as IBirchItem)
         }
       },
       [item, itemType, onClick]

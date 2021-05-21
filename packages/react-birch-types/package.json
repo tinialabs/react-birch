@@ -1,6 +1,6 @@
 {
   "name": "react-birch-types",
-  "version": "2.0.1",
+  "version": "2.0.6",
   "description": "Common type definitions for react-birch",
   "main": "dist/index.js",
   "browser:module": "src/index.ts",

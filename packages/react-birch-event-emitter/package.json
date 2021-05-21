@@ -1,6 +1,6 @@
 {
 	"name": "react-birch-event-emitter",
-	"version": "2.0.1",
+	"version": "2.0.6",
 	"description": "Simple Event Emitter",
 	"main": "dist/index.js",
 	"browser:module": "src/index.ts",

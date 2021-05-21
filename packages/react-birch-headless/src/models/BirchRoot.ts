@@ -443,6 +443,7 @@ export class BirchRoot extends BirchFolder implements IBirchRoot, IBirchFolder {
         // we hit a dead end while we still had path to traverse
         (item.type === EnumTreeItemType.Item && pathfrags.length > 0)
       ) {
+        console.error(`'${path}' not found`)
         throw new Error(`'${path}' not found`)
       }
       if (item.type === EnumTreeItemType.Folder) {
@@ -482,6 +483,7 @@ export class BirchRoot extends BirchFolder implements IBirchRoot, IBirchFolder {
         // we hit a dead end while we still had path to traverse
         (item.type === EnumTreeItemType.Item && pathfrags.length > 0)
       ) {
+        console.error(`'${path}' not found`)
         throw new Error(`'${path}' not found`)
       }
       if (item.type === EnumTreeItemType.Folder) {

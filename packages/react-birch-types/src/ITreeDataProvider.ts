@@ -56,7 +56,7 @@ export interface ITreeDataProvider {
    * Return `elemeent` or `undefined` if `element` is a child of root.
    *
    * @param label The label of the new element
-   * @param pathToNewObject The path of the new element
+   * @param newPath The path of the new element
    * @param itemType create an Item or Folder
    * @param content optional content to create
    * @return `element`.
@@ -64,9 +64,9 @@ export interface ITreeDataProvider {
   createItem?(
     parent: ITreeItem,
     label: string,
-    pathToNewObject: string,
+    newPath: string,
     itemType: EnumTreeItemType,
-    content?: string
+    content?: any
   ): Promise<ITreeItem>
 
   /**

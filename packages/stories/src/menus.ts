@@ -11,6 +11,17 @@ import { toFileIcon } from './util/icons'
 export const contributes = (treeDataProvider: ITreeDataProvider) => ({
   titleMenus: [
     {
+      command: 'explorer.uploadItem',
+      title: 'Upload new item',
+      handler: (view: IBirchTreeViewHandleExtended) => {
+        const uploadElement = document.getElementById('selectImage')
+        uploadElement.click()
+      },
+
+      //  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><polygon fill="#424242" points="9.676,2 6.414,2 7.414,3 9,3 9,6 12,6 12,13 4,13 4,9 3,9 3,14 13,14 13,5"/><polygon fill="#00539C" points="7,4 4,1 1,4 1,6 3,4 3,8 5,8 5,4 7,6"/></svg>
+      icon: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='13 2 8 2 6 2 6 0 2 0 2 2 0 2 0 6 2 6 2 8 4 8 4 16 16 16 16 5' fill='%23F6F6F6'/%3E%3Cpolygon points='12 3 8 3 8 4 11 4 11 7 14 7 14 14 6 14 6 8 5 8 5 15 15 15 15 6' fill='%23424242'/%3E%3Cpolygon points='7,4 4,1 1,4 1,6 3,4 3,8 5,8 5,4 7,6' fill='%23388A34'/%3E%3Cpolygon points='11 7 11 4 8 4 8 6 6 6 6 8 6 14 14 14 14 7' fill='%23F0EFF1'/%3E%3C/svg%3E%0A\")"
+    },
+    {
       command: 'explorer.newItem',
       title: 'Add new item',
       handler: (view: IBirchTreeViewHandleExtended) => {

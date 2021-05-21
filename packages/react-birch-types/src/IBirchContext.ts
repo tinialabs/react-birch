@@ -11,7 +11,6 @@ import {
   IBirchItemProps,
   IBirchTreeViewHandleExtended,
   IBirchTreeViewHandle,
-  EnumTreeItemTypeExtended,
   ITreeViewOptions
 } from '.'
 
@@ -55,11 +54,7 @@ export interface IBirchContext {
   }
 
   activeSelection: {
-    handleItemClicked: (
-      ev: React.MouseEvent<Element, MouseEvent>,
-      item: IBirchItem | IBirchFolder,
-      type: EnumTreeItemTypeExtended
-    ) => void
+    handleItemSelected: (item: IBirchItem | IBirchFolder) => void
     activeItem: IBirchItem | IBirchFolder
     pseudoActiveItem: IBirchItem | IBirchFolder
     updateActiveItem: (

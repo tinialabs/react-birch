@@ -4,7 +4,9 @@ import { TreeView, ITEM_HEIGHT, TreeViewItemStyled } from 'react-birch'
 import { ContextMenu, ContextMenuProvider } from 'react-birch-context-menu'
 import {
   EnumTreeItemType,
+  IBirchFolder,
   IBirchItem,
+  IBirchTreeViewHandleExtended,
   ITreeDataProvider,
   ITreeItem,
   ProviderResult
@@ -12,7 +14,7 @@ import {
 import styled, { ThemeProvider } from 'styled-components'
 import debounceFn from 'debounce-fn'
 import fsVolume from './util/fs'
-import { contributes, onCreateView } from './menus'
+import { contributes } from './menus'
 import type { Dirent } from 'memfs/lib/Dirent'
 
 const Wrapper = styled.section`
@@ -60,7 +62,15 @@ const treeDataProvider: ITreeDataProvider = {
     return {
       tid: element.tid,
       label: element.name || element.label,
-      type: element.type
+      type: element.type,
+      command: {
+        command: 'explorer.showItem',
+        arguments: [element.tid],
+        title: 'Open Document',
+        handler: async (item) => {
+          console.log(item.label)
+        }
+      }
     } as ITreeItem
   },
   onDidChangeTreeData: function (handler: (event: any) => void): () => void {
@@ -79,11 +89,11 @@ const treeDataProvider: ITreeDataProvider = {
   createItem: async function (
     parent: IBirchItem,
     label: string,
-    pathToNewObject: string,
+    newPath: string,
     itemType: EnumTreeItemType,
     content?: string
   ): Promise<ITreeItem> {
-    const fullPath = pathToNewObject
+    const fullPath = newPath
     const tid = guid()
     pathToTid.set(fullPath, tid)
     tidToPath.set(tid, fullPath)
@@ -158,14 +168,76 @@ const treeDataProvider: ITreeDataProvider = {
 
 // eslint-disable-next-line import/prefer-default-export
 export const Simple = () => {
+  const view = React.useRef<IBirchTreeViewHandleExtended>(null!)
+
+  const onCreateView = React.useCallback(
+    (viewHandle, viewHandleExtended: IBirchTreeViewHandleExtended) => {
+      view.current = viewHandleExtended
+    },
+    []
+  )
+
+  const uploadFile = React.useCallback(async (e) => {
+    let itemsToUpload = []
+    for (let i = 0; i < e.target.files.length; i++) {
+      const file = e.target.files[i]
+      const metadata = {
+        lastModified: file.lastModified,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        webkitRelativePath: file.webkitRelativePath
+      }
+      const url = URL.createObjectURL(file)
+      itemsToUpload = [...itemsToUpload, { url, metadata }]
+    }
+    let parentFolder =
+      view.current.getActiveItem() ||
+      view.current.getPseudoActiveItem() ||
+      view.current.getModel().root
+
+    if (parentFolder.type === EnumTreeItemType.Item) {
+      parentFolder = parentFolder.parent
+    }
+
+    await Promise.all(
+      itemsToUpload.map(async (itemToUpload) => {
+        await treeDataProvider.createItem(
+          parentFolder,
+          itemToUpload.metadata.name,
+          `${parentFolder.path}/${itemToUpload.metadata.name}`,
+          EnumTreeItemType.Item,
+          'sample content'
+        )
+
+        await view.current.createdItem(
+          {
+            tid: itemToUpload.metadata.name,
+            label: itemToUpload.metadata.name,
+            type: EnumTreeItemType.Item
+          },
+          parentFolder as IBirchFolder
+        )
+      })
+    )
+  }, [])
+
   return (
     <ThemeProvider
       theme={{
         icons: { octicons: {} },
         fontSizes: [12, 14, 16],
         colors: {
+          primary: '#f00',
           accent: '#ddd',
-          gray: '#888'
+          accent2: '#eee',
+          accent3: '#ccc',
+          gray: '#888',
+          gray2: '#222',
+          gray5: '#555',
+          beige1: '#eef',
+          dark1: '#26284B',
+          light1: '#fff'
         }
       }}
     >
@@ -187,6 +259,13 @@ export const Simple = () => {
           >
             <div placeholder="Search" />
           </TreeView>
+          <input
+            id="selectImage"
+            hidden
+            type="file"
+            onChange={uploadFile}
+            multiple
+          />
         </Wrapper>
       </ContextMenuProvider>
     </ThemeProvider>

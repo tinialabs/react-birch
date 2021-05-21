@@ -15,10 +15,6 @@ export interface IBirchItemRendererWrapProps {
     | IBirchRenamePromptHandle
   itemType: EnumTreeItemTypeExtended
   decorations: IBirchDecorationClasslistComposite
-  onClick: (
-    ev: React.MouseEvent,
-    item: IBirchItem | IBirchFolder,
-    type: EnumTreeItemTypeExtended
-  ) => void
+  onClick: (ev: React.MouseEvent, item: IBirchItem | IBirchFolder) => void
   itemMenus: { command: string; icon: string; handler: (item) => void }[]
 }

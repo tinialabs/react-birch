@@ -1,6 +1,6 @@
 {
   "name": "react-birch-headless",
-  "version": "2.0.1",
+  "version": "2.0.6",
   "description": "Stylish solution for rendering nested trees in React apps",
   "main": "src/index.ts",
   "browser:module": "src/index.ts",
